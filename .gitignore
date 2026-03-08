@@ -1,0 +1,9 @@
+# 로컬/에이전트 환경 (커밋 제외)
+.cursor/
+.agents/
+.claude/
+skills/
+skills-lock.json
+
+# OS
+.DS_Store
