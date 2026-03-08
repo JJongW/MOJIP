@@ -109,4 +109,35 @@ VITE_SUPABASE_ANON_KEY=eyJhbGc...
 - **로컬**: `web/.env`에 `VITE_KAKAO_JAVASCRIPT_KEY=발급받은_JavaScript_키`
 - **Vercel**: 프로젝트 설정 > Environment Variables에 `VITE_KAKAO_JAVASCRIPT_KEY` 추가
 
-키를 넣지 않으면 **링크 복사** 또는 (지원 시) **Web Share API**로 동작합니다.
+### 우리만의 커스텀 공유 템플릿 (선택)
+
+카카오 [사용자 정의 템플릿](https://developers.kakao.com/docs/latest/ko/kakaotalk-share/js-link)을 쓰면 **우리 서비스에 맞는 메시지 레이아웃**으로 공유할 수 있습니다.
+
+1. **[도구] > [메시지 템플릿](https://developers.kakao.com/tool/template-builder/app)** 에서 모집글 공유용 템플릿을 만든다 (피드/리스트/커머스 중 선택).
+2. 템플릿에 **사용자 인자**를 추가할 때, 아래 이름을 쓰면 코드에서 자동으로 채워 넣습니다.
+   - `title` — 모집글 제목
+   - `description` — 모집글 설명(일부)
+   - `url` — 공유 링크 (지원하기 바로 열기 URL)
+3. 템플릿 저장 후 발급된 **템플릿 ID**(숫자)를 환경 변수에 넣는다.
+   - `VITE_KAKAO_SHARE_TEMPLATE_ID=123456` (예시)
+4. `VITE_KAKAO_SHARE_TEMPLATE_ID`가 있으면 **sendCustom**으로 해당 템플릿을 사용하고, 없으면 기존 기본 피드 템플릿으로 동작한다.
+
+참고: [카카오톡 공유 > JavaScript](https://developers.kakao.com/docs/latest/ko/kakaotalk-share/js-link), [메시지 템플릿 이해하기](https://developers.kakao.com/docs/latest/ko/message-template/common)
+
+**링크가 카카오톡에서 안 열릴 때** (공식 문서: [앱 설정 > 앱](https://developers.kakao.com/docs/latest/ko/app-setting/app#share-webhook))
+
+1. **VITE_APP_URL**  
+   공유된 링크의 베이스 URL. Vercel 배포 URL(예: `https://프로젝트.vercel.app`)을 넣어 두면, 카카오톡에서 **지원하기** 버튼을 눌렀을 때 해당 주소로 이동한다.  
+   - Vercel 환경 변수: `VITE_APP_URL=https://실제배포도메인`
+
+2. **카카오 콘솔에서 도메인 두 군데 등록**  
+   - **JavaScript SDK 도메인** (SDK 사용 허용): [앱] → [플랫폼 키] → [JavaScript 키] → [JavaScript SDK 도메인]에 우리 사이트 도메인 추가.  
+     → 여기 없으면 공유 버튼 눌렀을 때 SDK가 막힌다.  
+   - **제품 링크 관리 > 웹 도메인** (공유 메시지 안 링크 허용): [앱] → [제품 링크 관리] → [웹 도메인]에서 [도메인 등록]으로 배포 도메인 추가.  
+     → **여기를 안 하면 카카오톡에서 링크를 눌러도 연결이 허용되지 않아 안 열린다.**  
+   입력 시 경로는 제외되고 도메인만 등록된다 (예: `https://mojip.vercel.app`). 최대 10개까지 등록 가능.
+
+**선택: 카카오톡 공유 웹훅**  
+[앱] → [웹훅] → [카카오톡 공유 웹훅]에서 URL을 등록하면, 사용자가 카카오톡으로 공유할 때 우리 서버로 알림을 받을 수 있다. 공유 횟수 집계나 로깅이 필요할 때 활용하면 된다. (HTTPS, 443 포트만 지원)
+
+키를 넣지 않으면 **링크 복사** 또는 (지원 시) **Web Share API**로 동작한다.

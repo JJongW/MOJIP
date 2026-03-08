@@ -2,15 +2,31 @@
  * 카카오톡 공유 및 링크 공유 유틸
  * - Kakao JS SDK 사용 시: 카카오톡 공유 창 표시
  * - 미설정 시: Web Share API 또는 클립보드 복사
+ *
+ * 사용자 정의 템플릿: VITE_KAKAO_SHARE_TEMPLATE_ID 설정 시 sendCustom() 사용.
+ * templateArgs 키: title(제목), description(설명), url(공유 링크). [도구] > [메시지 템플릿]에서 동일한 사용자 인자 이름으로 설정.
  */
 const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js";
 const SCRIPT_ID = "kakao-sdk";
 
+/**
+ * 공유 시 사용할 베이스 URL (프로덕션 고정용)
+ * - VITE_APP_URL 설정 시 해당 URL 사용 (카카오톡에서 링크 클릭 시 올바른 사이트로 이동)
+ * - 미설정 시 window.location.origin 사용
+ */
+function getShareBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_APP_URL as string | undefined;
+  if (envUrl?.trim()) return envUrl.replace(/\/$/, "");
+  if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+  return "";
+}
+
 /** 공유용 URL 생성 (지원하기 바로 열기 옵션) */
 export function getShareUrl(recruitmentId: string, openApply = true): string {
-  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const base = getShareBaseUrl();
   const path = `/r/${recruitmentId}`;
-  return openApply ? `${base}${path}?apply=1` : `${base}${path}`;
+  const fullPath = openApply ? `${path}?apply=1` : path;
+  return base ? `${base}${fullPath}` : fullPath;
 }
 
 /** Kakao SDK 로드 후 init (키가 있을 때만) */
@@ -58,28 +74,52 @@ export async function shareRecruitment(
   const text = recruitment.description?.slice(0, 100) ?? title;
 
   const inited = await loadKakaoAndInit();
+  const templateId = (import.meta.env.VITE_KAKAO_SHARE_TEMPLATE_ID as string)?.trim();
   const w = window as Window & {
     Kakao?: {
       Share: {
         sendDefault: (arg: {
           objectType: string;
           content: { title: string; description?: string; imageUrl?: string; link: { webUrl: string; mobileWebUrl: string } };
+          buttons?: Array<{ title: string; link: { webUrl: string; mobileWebUrl: string } }>;
         }) => Promise<void>;
+        sendCustom: (arg: { templateId: number; templateArgs?: Record<string, string> }) => Promise<void>;
       };
     };
   };
 
-  if (inited && w.Kakao?.Share?.sendDefault) {
+  if (inited && w.Kakao?.Share) {
     try {
-      await w.Kakao.Share.sendDefault({
-        objectType: "feed",
-        content: {
-          title,
-          description: text,
-          link: { webUrl: url, mobileWebUrl: url },
-        },
-      });
-      return "kakao";
+      // 사용자 정의 템플릿: [도구] > [메시지 템플릿]에서 만든 템플릿 ID가 있으면 sendCustom 사용
+      if (templateId && w.Kakao.Share.sendCustom) {
+        const templateIdNum = Number(templateId);
+        if (!Number.isNaN(templateIdNum)) {
+          await w.Kakao.Share.sendCustom({
+            templateId: templateIdNum,
+            templateArgs: {
+              title,
+              description: text,
+              url,
+            },
+          });
+          return "kakao";
+        }
+      }
+      // 기본 템플릿(피드): templateId 없거나 sendCustom 실패 시 기존 sendDefault 유지
+      if (w.Kakao.Share.sendDefault) {
+        await w.Kakao.Share.sendDefault({
+          objectType: "feed",
+          content: {
+            title,
+            description: text,
+            link: { webUrl: url, mobileWebUrl: url },
+          },
+          buttons: [
+            { title: "지원하기", link: { webUrl: url, mobileWebUrl: url } },
+          ],
+        });
+        return "kakao";
+      }
     } catch (e) {
       console.warn("Kakao share failed", e);
     }
