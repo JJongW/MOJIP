@@ -48,7 +48,7 @@ const Index = () => {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-white/5 backdrop-blur-xl">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" />
+            <img src="/favicon-32x32.png" alt="" className="h-6 w-6" aria-hidden />
             <h1 className="text-xl font-bold">모여봐요 종원의숲</h1>
           </div>
           <Button onClick={() => setCreateOpen(true)} size="sm">
@@ -141,6 +141,7 @@ const Index = () => {
       {/* Dialogs */}
       <CreateRecruitmentDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={refresh} />
       <RecruitmentDetailDialog
+        key={detailItem?.id}
         recruitment={detailItem}
         open={!!detailItem}
         onOpenChange={(open) => !open && setDetailItem(null)}

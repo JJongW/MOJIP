@@ -1,9 +1,13 @@
-export type RecruitmentCategory = 
-  | "스터디" 
-  | "프로젝트" 
-  | "동아리" 
-  | "대회/공모전" 
-  | "봉사활동" 
+export type RecruitmentCategory =
+  | "스터디"
+  | "프로젝트"
+  | "동아리"
+  | "대회/공모전"
+  | "봉사활동"
+  | "게임"
+  | "간술"
+  | "보드게임"
+  | "스포츠"
   | "기타";
 
 export type RecruitmentStatus = "모집중" | "모집완료";
@@ -34,6 +38,8 @@ export interface Recruitment {
   author: string;
   /** 팀 워크스페이스 참여 코드 (선택) */
   accessCode?: string;
+  /** 모집 종료/재개 시 필요한 비밀번호 해시 (있으면 비번 입력해야만 상태 변경 가능) */
+  closePasswordHash?: string;
   /** 지원자 목록 (상세에서만 사용) */
   applicants?: Applicant[];
 }
@@ -47,8 +53,8 @@ export interface WorkspaceTask {
   title: string;
   description?: string;
   repeatCycle: TaskRepeatCycle;
-  startDate: string; // YYYY-MM-DD
-  dueDate?: string;
+  startDate: string; // YYYY-MM-DD 또는 YYYY-MM-DDTHH:mm
+  dueDate?: string; // YYYY-MM-DD 또는 YYYY-MM-DDTHH:mm
   assignee?: string; // 닉네임
   createdBy: string; // 닉네임
   createdAt: string; // ISO

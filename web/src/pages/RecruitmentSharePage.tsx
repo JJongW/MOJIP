@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Calendar, Mail, User, ArrowLeft, Share2 } from "lucide-react";
 import { fetchRecruitments, updateRecruitment } from "@/lib/store";
+import { formatDateTimeDisplay } from "@/lib/util";
 import { shareRecruitment } from "@/lib/kakao-share";
 import type { Recruitment, Applicant } from "@/lib/types";
 import { toast } from "sonner";
@@ -151,7 +152,7 @@ export default function RecruitmentSharePage() {
               <span className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" /> 마감일
               </span>
-              <span className="font-semibold">{recruitment.deadline}</span>
+              <span className="font-semibold">{formatDateTimeDisplay(recruitment.deadline)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2 text-muted-foreground">
@@ -180,7 +181,7 @@ export default function RecruitmentSharePage() {
         </div>
       </main>
 
-      <ApplyDialog open={applyOpen} onOpenChange={setApplyOpen} onApply={handleApply} />
+      <ApplyDialog open={applyOpen} onOpenChange={setApplyOpen} onApply={handleApply} accessCode={recruitment.accessCode} />
     </div>
   );
 }

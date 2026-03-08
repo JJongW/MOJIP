@@ -1,4 +1,5 @@
 import type { Recruitment } from "@/lib/types";
+import { formatDateTimeDisplay } from "@/lib/util";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Calendar } from "lucide-react";
@@ -15,6 +16,9 @@ const categoryColors: Record<string, string> = {
   "대회/공모전": "bg-destructive/20 text-destructive",
   "봉사활동": "bg-success/20 text-success",
   "게임": "bg-secondary text-secondary-foreground",
+  "간술": "bg-primary/15 text-primary",
+  "보드게임": "bg-warning/15 text-warning",
+  "스포츠": "bg-success/20 text-success",
   "기타": "bg-muted text-muted-foreground",
 };
 
@@ -57,7 +61,7 @@ export default function RecruitmentCard({ recruitment, onView }: Props) {
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
-              ~{recruitment.deadline}
+              ~{formatDateTimeDisplay(recruitment.deadline)}
             </span>
           </div>
           {progress !== null && (

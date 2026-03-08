@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Recruitment, Applicant } from "@/lib/types";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, Mail, User, CheckCircle2, XCircle, Phone, Building2, LayoutDashboard, Share2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Users, Calendar, Mail, User, CheckCircle2, XCircle, Phone, Building2, LayoutDashboard, Share2, Lock } from "lucide-react";
 import { updateRecruitment } from "@/lib/store";
+import { formatDateTimeDisplay, verifyClosePassword } from "@/lib/util";
 import { shareRecruitment } from "@/lib/kakao-share";
 import { toast } from "sonner";
 import ApplyDialog from "./ApplyDialog";
@@ -21,6 +24,9 @@ interface Props {
 
 export default function RecruitmentDetailDialog({ recruitment, open, onOpenChange, onUpdated }: Props) {
   const [applyOpen, setApplyOpen] = useState(false);
+  const [closePasswordOpen, setClosePasswordOpen] = useState(false);
+  const [closePasswordInput, setClosePasswordInput] = useState("");
+  const [closePasswordError, setClosePasswordError] = useState("");
   const navigate = useNavigate();
 
   if (!recruitment) return null;
@@ -28,6 +34,7 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
   const isClosed = recruitment.status === "모집완료";
   const progress = recruitment.maxMembers ? (recruitment.currentMembers / recruitment.maxMembers) * 100 : null;
   const applicants = recruitment.applicants || [];
+  const needsPassword = !!recruitment.closePasswordHash?.trim();
 
   const toggleStatus = async () => {
     const updated = {
@@ -37,6 +44,29 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
     await updateRecruitment(updated);
     toast.success(isClosed ? "모집이 재개되었습니다." : "모집이 완료되었습니다.");
     onUpdated();
+  };
+
+  const handleCloseOrReopenClick = () => {
+    if (needsPassword) {
+      setClosePasswordInput("");
+      setClosePasswordError("");
+      setClosePasswordOpen(true);
+    } else {
+      toggleStatus();
+    }
+  };
+
+  const handleClosePasswordConfirm = async () => {
+    if (!recruitment.closePasswordHash) return;
+    setClosePasswordError("");
+    const ok = await verifyClosePassword(closePasswordInput, recruitment.closePasswordHash);
+    if (!ok) {
+      setClosePasswordError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    setClosePasswordOpen(false);
+    setClosePasswordInput("");
+    await toggleStatus();
   };
 
   const handleApply = async (applicant: Applicant) => {
@@ -93,7 +123,7 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
                 <span className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" /> 마감일
                 </span>
-                <span className="font-semibold">{recruitment.deadline}</span>
+                <span className="font-semibold">{formatDateTimeDisplay(recruitment.deadline)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 text-muted-foreground">
@@ -147,7 +177,7 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
                     지원하기
                   </Button>
                 )}
-                <Button variant="outline" onClick={toggleStatus} className="flex-1">
+                <Button variant="outline" onClick={handleCloseOrReopenClick} className="flex-1">
                   {isClosed ? (
                     <><CheckCircle2 className="h-4 w-4 mr-2" />모집 재개</>
                   ) : (
@@ -173,7 +203,41 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
         </DialogContent>
       </Dialog>
 
-      <ApplyDialog open={applyOpen} onOpenChange={setApplyOpen} onApply={handleApply} />
+      <ApplyDialog open={applyOpen} onOpenChange={setApplyOpen} onApply={handleApply} accessCode={recruitment.accessCode} />
+
+      <Dialog open={closePasswordOpen} onOpenChange={setClosePasswordOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              {isClosed ? "모집 재개" : "모집 완료"} 비밀번호
+            </DialogTitle>
+            <DialogDescription>
+              작성 시 발급된 비밀번호를 입력하세요. 제3자는 모집 상태를 변경할 수 없습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="close-password">비밀번호</Label>
+            <Input
+              id="close-password"
+              type="text"
+              autoComplete="off"
+              value={closePasswordInput}
+              onChange={(e) => setClosePasswordInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleClosePasswordConfirm()}
+              placeholder="8자리 비밀번호"
+              className={closePasswordError ? "border-destructive" : ""}
+            />
+            {closePasswordError && (
+              <p className="text-xs text-destructive">{closePasswordError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClosePasswordOpen(false)}>취소</Button>
+            <Button onClick={handleClosePasswordConfirm}>확인</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

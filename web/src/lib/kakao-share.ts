@@ -6,6 +6,8 @@
  * 공유 시 Kakao.Share.sendCustom({ templateId, templateArgs }) 호출 (공식 예시와 동일).
  * [도구] > [메시지 템플릿]에서 사용자 인자 이름은 KAKAO_TEMPLATE_ARG_KEYS와 동일하게 입력해야 함.
  */
+import { formatDateTimeDisplay } from "@/lib/util";
+
 const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js";
 const KAKAO_SDK_INTEGRITY = "sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p";
 
@@ -108,9 +110,14 @@ export async function shareRecruitment(
   options: { openApply?: boolean } = {}
 ): Promise<ShareResult> {
   const { openApply = true } = options;
-  const url = getShareUrl(recruitment.id, openApply);
+  // 항상 인자로 받은 해당 모집글만 사용 (캐시/클로저 혼동 방지)
+  const id = recruitment.id;
+  const url = getShareUrl(id, openApply);
   const title = recruitment.title;
   const text = recruitment.description?.slice(0, 100) ?? title;
+  if (import.meta.env.DEV) {
+    console.info("[Kakao 공유] 모집글 id:", id, "제목:", title);
+  }
 
   const inited = await loadKakaoAndInit();
   // 환경 변수 없으면 우리가 만든 템플릿 130396 사용 (항상 커스텀 템플릿 반영)
@@ -144,7 +151,7 @@ export async function shareRecruitment(
             description: text,
             url,
             인원: headcount,
-            마감일: recruitment.deadline ?? "",
+            마감일: formatDateTimeDisplay(recruitment.deadline ?? ""),
             카테고리: recruitment.category ?? "",
             상태: recruitment.status ?? "",
             작성자: recruitment.author ?? "",
@@ -152,12 +159,14 @@ export async function shareRecruitment(
           if (import.meta.env.DEV) {
             console.info(
               "[Kakao 공유] 템플릿 사용자 인자 이름(코드에서 전송). 카카오 [메시지 템플릿]에서 아래와 동일하게 입력했는지 확인하세요:",
-              [...KAKAO_TEMPLATE_ARG_KEYS]
+              [...KAKAO_TEMPLATE_ARG_KEYS],
+              "현재 전송 title:",
+              templateArgs.title
             );
           }
           await w.Kakao.Share.sendCustom({
             templateId: templateIdNum,
-            templateArgs,
+            templateArgs: { ...templateArgs },
           });
           return "kakao";
         }
