@@ -158,7 +158,8 @@ export async function updateRecruitmentInSupabase(updated: Recruitment): Promise
   if (error) throw error;
 
   const applicants = updated.applicants ?? [];
-  await supabase.from("applicants").delete().eq("recruitment_id", updated.id);
+  const { error: delErr } = await supabase.from("applicants").delete().eq("recruitment_id", updated.id);
+  if (delErr) throw delErr;
   if (applicants.length > 0) {
     const { error: appErr } = await supabase.from("applicants").insert(
       applicants.map((a) => ({

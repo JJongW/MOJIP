@@ -5,7 +5,7 @@ import { Plus, Search, Users, Filter } from "lucide-react";
 import RecruitmentCard from "@/components/RecruitmentCard";
 import CreateRecruitmentDialog from "@/components/CreateRecruitmentDialog";
 import RecruitmentDetailDialog from "@/components/RecruitmentDetailDialog";
-import { fetchRecruitments, categories } from "@/lib/store";
+import { fetchRecruitments, fetchRecruitmentById, categories } from "@/lib/store";
 import type { Recruitment, RecruitmentCategory, RecruitmentStatus } from "@/lib/types";
 
 type StatusFilter = "전체" | RecruitmentStatus;
@@ -26,6 +26,15 @@ const Index = () => {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  /** 상세 다이얼로그가 열릴 때마다 해당 모집글 최신 데이터로 갱신 (지원자 목록 등 반영) */
+  const detailId = detailItem?.id;
+  useEffect(() => {
+    if (!detailId) return;
+    fetchRecruitmentById(detailId).then((fresh) => {
+      if (fresh) setDetailItem(fresh);
+    });
+  }, [detailId]);
 
   const filtered = useMemo(() => {
     return recruitments.filter((r) => {

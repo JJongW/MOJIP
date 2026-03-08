@@ -114,6 +114,15 @@ export async function fetchRecruitments(): Promise<Recruitment[]> {
   return getRecruitments();
 }
 
+/**
+ * 단일 모집글 최신 조회 (지원자 목록 포함).
+ * - 상세 다이얼로그/공유 페이지 열 때 호출해 항상 최신 applicants 반영
+ */
+export async function fetchRecruitmentById(id: string): Promise<Recruitment | null> {
+  const list = await fetchRecruitments();
+  return list.find((r) => r.id === id) ?? null;
+}
+
 export async function saveRecruitment(recruitment: Recruitment): Promise<void> {
   if (isSupabaseConfigured()) {
     await saveRecruitmentToSupabase(recruitment);
