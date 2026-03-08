@@ -141,6 +141,7 @@ const Index = () => {
       {/* Dialogs */}
       <CreateRecruitmentDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={refresh} />
       <RecruitmentDetailDialog
+        key={detailItem?.id}
         recruitment={detailItem}
         open={!!detailItem}
         onOpenChange={(open) => !open && setDetailItem(null)}

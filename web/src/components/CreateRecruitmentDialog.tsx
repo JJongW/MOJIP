@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +12,10 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { AlertTriangle } from "lucide-react";
 import { categories, saveRecruitment } from "@/lib/store";
 import type { Recruitment, RecruitmentCategory } from "@/lib/types";
+import { generateClosePassword, hashClosePassword } from "@/lib/util";
 import { toast } from "sonner";
 
 interface Props {
@@ -30,6 +35,8 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
   const [author, setAuthor] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [passwordAlertOpen, setPasswordAlertOpen] = useState(false);
+  const [savedPassword, setSavedPassword] = useState("");
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -62,6 +69,8 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
       });
       return;
     }
+    const closePassword = generateClosePassword();
+    const closePasswordHash = await hashClosePassword(closePassword);
     const recruitment: Recruitment = {
       id: Date.now().toString(),
       title: title.trim(),
@@ -76,12 +85,20 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
       contact: contact.trim(),
       author: author.trim(),
       accessCode: accessCode.trim() || undefined,
+      closePasswordHash,
     };
     await saveRecruitment(recruitment);
-    toast.success("모집글이 등록되었습니다!");
+    setSavedPassword(closePassword);
+    setPasswordAlertOpen(true);
+  };
+
+  const handlePasswordAlertComplete = () => {
+    setPasswordAlertOpen(false);
+    setSavedPassword("");
     reset();
     onOpenChange(false);
     onCreated();
+    toast.success("모집글이 등록되었습니다!");
   };
 
   const FieldError = ({ field }: { field: string }) =>
@@ -90,6 +107,7 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
     ) : null;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -157,5 +175,33 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={passwordAlertOpen} onOpenChange={() => {}}>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader>
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            <AlertDialogTitle>모집 종료 비밀번호를 꼭 저장하세요</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 pt-1">
+              <p className="text-foreground font-medium">
+                이 비밀번호를 잊어버리면 모집 종료·재개를 할 수 없습니다.
+              </p>
+              <p className="rounded-md bg-muted px-3 py-2 font-mono text-lg tracking-wider">
+                {savedPassword}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                안전한 곳에 메모해 두신 뒤 아래 완료 버튼을 눌러주세요.
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={handlePasswordAlertComplete}>완료</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }

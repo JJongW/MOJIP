@@ -19,6 +19,7 @@ type DbRecruitment = {
   contact: string;
   author: string;
   access_code: string | null;
+  close_password_hash: string | null;
 };
 
 type DbApplicant = {
@@ -46,6 +47,7 @@ function toRecruitment(r: DbRecruitment, applicants: Applicant[]): Recruitment {
     contact: r.contact,
     author: r.author,
     accessCode: r.access_code ?? undefined,
+    closePasswordHash: r.close_password_hash ?? undefined,
     applicants,
   };
 }
@@ -108,6 +110,7 @@ export async function saveRecruitmentToSupabase(recruitment: Recruitment): Promi
       contact: recruitment.contact,
       author: recruitment.author,
       access_code: recruitment.accessCode ?? null,
+      close_password_hash: recruitment.closePasswordHash ?? null,
     })
     .select("id")
     .single();
@@ -148,6 +151,7 @@ export async function updateRecruitmentInSupabase(updated: Recruitment): Promise
       contact: updated.contact,
       author: updated.author,
       access_code: updated.accessCode ?? null,
+      close_password_hash: updated.closePasswordHash ?? null,
     })
     .eq("id", updated.id);
 

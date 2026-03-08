@@ -38,6 +38,8 @@ export interface Recruitment {
   author: string;
   /** 팀 워크스페이스 참여 코드 (선택) */
   accessCode?: string;
+  /** 모집 종료/재개 시 필요한 비밀번호 해시 (있으면 비번 입력해야만 상태 변경 가능) */
+  closePasswordHash?: string;
   /** 지원자 목록 (상세에서만 사용) */
   applicants?: Applicant[];
 }

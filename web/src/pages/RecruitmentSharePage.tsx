@@ -181,7 +181,7 @@ export default function RecruitmentSharePage() {
         </div>
       </main>
 
-      <ApplyDialog open={applyOpen} onOpenChange={setApplyOpen} onApply={handleApply} />
+      <ApplyDialog open={applyOpen} onOpenChange={setApplyOpen} onApply={handleApply} accessCode={recruitment.accessCode} />
     </div>
   );
 }
