@@ -144,6 +144,22 @@ Radix Select `value=""` 사용 시 발생하던 렌더/동작 오류 수정
 
 ## PR 시 참고
 
-- 브랜치: `feature/mojip-web-supabase` (또는 이슈별 브랜치)
-- 커밋 메시지 예: `feat(web): Supabase 연동 및 워크스페이스·모집 기능`
-- PR 설명에 위 이슈 번호를 "Closes #1, #2, ..." 형태로 넣으면 이슈 자동 연결 가능
+- **브랜치**: `feature/mojip-web-supabase` (이미 푸시됨)
+- **PR 생성**: https://github.com/JJongW/MOJIP/compare/main...feature/mojip-web-supabase  
+  또는 **GitHub 저장소 > Pull requests > New pull request**에서 base `main`, compare `feature/mojip-web-supabase` 선택
+- PR 제목 예: `feat(web): MOJIP 웹 앱 + Supabase 연동`
+- PR 설명에 이슈 연결 예시:
+  ```text
+  ## 요약
+  웹 클라이언트(Vite+React+TS), 워크스페이스, Supabase 연동까지 반영했습니다.
+
+  ## 관련 이슈
+  - #1 웹 앱 기본 세팅
+  - #2 다크 모드·글래스모피즘
+  - #3 워크스페이스 기능
+  - #4 새 과제 모달 수정
+  - #5 완료 버튼·반복 주기·히트맵
+  - #6 Supabase 연동 및 Vercel 배포
+
+  (이슈 생성 후 위 번호를 실제 이슈 번호로 바꾸고, 원하면 Closes #1, Closes #2 ... 로 넣으면 머지 시 이슈 자동 close 됨)
+  ```
