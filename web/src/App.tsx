@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { fetchRecruitments } from "@/lib/store";
 import Index from "./pages/index";
 import Workspace from "./pages/Workspace";
+import RecruitmentSharePage from "./pages/RecruitmentSharePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/workspace/:id" element={<Workspace />} />
+          <Route path="/r/:id" element={<RecruitmentSharePage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
