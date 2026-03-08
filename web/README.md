@@ -90,3 +90,23 @@ VITE_SUPABASE_ANON_KEY=eyJhbGc...
    - `VITE_SUPABASE_ANON_KEY`
 
 배포 후 빌드가 성공하면 해당 URL에서 서비스됩니다.
+
+---
+
+## 카카오톡 공유 (모집글 공유)
+
+모집글 상세에서 **카카오톡으로 공유** 버튼을 누르면 링크를 카카오톡 방에 올릴 수 있고, 수신자가 링크를 클릭하면 **지원하기**까지 바로 진행할 수 있습니다.
+
+### 공유 링크 형식
+
+- **일반**: `https://도메인/r/모집글ID` (모집 상세 페이지)
+- **지원하기 바로 열기**: `https://도메인/r/모집글ID?apply=1` (공유 시 기본 사용)
+
+### 카카오 공유 창 사용 (선택)
+
+[Kakao Developers](https://developers.kakao.com)에서 앱을 만들고 **앱 키 > JavaScript 키**를 발급한 뒤, 환경 변수에 넣으면 **카카오톡 공유** 버튼 클릭 시 카카오 공유 창이 열립니다.
+
+- **로컬**: `web/.env`에 `VITE_KAKAO_JAVASCRIPT_KEY=발급받은_JavaScript_키`
+- **Vercel**: 프로젝트 설정 > Environment Variables에 `VITE_KAKAO_JAVASCRIPT_KEY` 추가
+
+키를 넣지 않으면 **링크 복사** 또는 (지원 시) **Web Share API**로 동작합니다.

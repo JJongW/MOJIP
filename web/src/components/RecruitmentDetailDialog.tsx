@@ -6,8 +6,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, Mail, User, CheckCircle2, XCircle, Phone, Building2, LayoutDashboard } from "lucide-react";
+import { Users, Calendar, Mail, User, CheckCircle2, XCircle, Phone, Building2, LayoutDashboard, Share2 } from "lucide-react";
 import { updateRecruitment } from "@/lib/store";
+import { shareRecruitment } from "@/lib/kakao-share";
 import { toast } from "sonner";
 import ApplyDialog from "./ApplyDialog";
 
@@ -48,6 +49,11 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
     await updateRecruitment(updated);
     toast.success(`${applicant.name}님의 지원이 완료되었습니다!`);
     onUpdated();
+  };
+
+  const handleShare = async () => {
+    const result = await shareRecruitment(recruitment, { openApply: true });
+    if (result === "copy") toast.success("링크가 복사되었습니다. 카카오톡에 붙여넣기 하세요.");
   };
 
   return (
@@ -130,6 +136,10 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
             )}
 
             <div className="flex flex-col gap-2 pt-2">
+              <Button variant="secondary" size="sm" className="w-full" onClick={handleShare}>
+                <Share2 className="h-4 w-4 mr-2" />
+                카카오톡으로 공유
+              </Button>
               <div className="flex gap-2">
                 {!isClosed && (
                   <Button className="flex-1" onClick={() => setApplyOpen(true)} disabled={!!recruitment.maxMembers && recruitment.currentMembers >= recruitment.maxMembers}>
