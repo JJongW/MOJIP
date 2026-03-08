@@ -3,10 +3,11 @@
  * - Kakao JS SDK 사용 시: 카카오톡 공유 창 표시
  * - 미설정 시: Web Share API 또는 클립보드 복사
  *
- * 사용자 정의 템플릿: VITE_KAKAO_SHARE_TEMPLATE_ID 설정 시 sendCustom() 사용.
- * [도구] > [메시지 템플릿]에서 사용자 인자 이름은 반드시 KAKAO_TEMPLATE_ARG_KEYS와 동일하게 입력해야 함.
+ * 공유 시 Kakao.Share.sendCustom({ templateId, templateArgs }) 호출 (공식 예시와 동일).
+ * [도구] > [메시지 템플릿]에서 사용자 인자 이름은 KAKAO_TEMPLATE_ARG_KEYS와 동일하게 입력해야 함.
  */
-const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js";
+const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js";
+const KAKAO_SDK_INTEGRITY = "sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p";
 
 /**
  * 카카오 사용자 정의 템플릿에 전달하는 인자 이름 (단일 소스)
@@ -64,6 +65,7 @@ function loadKakaoAndInit(): Promise<boolean> {
     const script = document.createElement("script");
     script.id = SCRIPT_ID;
     script.src = KAKAO_SDK_URL;
+    script.integrity = KAKAO_SDK_INTEGRITY;
     script.crossOrigin = "anonymous";
     script.onload = () => {
       w.Kakao?.init?.(key);
@@ -111,7 +113,9 @@ export async function shareRecruitment(
   const text = recruitment.description?.slice(0, 100) ?? title;
 
   const inited = await loadKakaoAndInit();
-  const templateId = (import.meta.env.VITE_KAKAO_SHARE_TEMPLATE_ID as string)?.trim();
+  // 환경 변수 없으면 우리가 만든 템플릿 130396 사용 (항상 커스텀 템플릿 반영)
+  const templateId =
+    (import.meta.env.VITE_KAKAO_SHARE_TEMPLATE_ID as string)?.trim() || "130396";
   const w = window as Window & {
     Kakao?: {
       Share: {
@@ -127,7 +131,7 @@ export async function shareRecruitment(
 
   if (inited && w.Kakao?.Share) {
     try {
-      // 사용자 정의 템플릿: [도구] > [메시지 템플릿]에서 만든 템플릿 ID가 있으면 sendCustom 사용
+      // 사용자 정의 템플릿: templateId(기본 130396)로 sendCustom 호출 → 인원/마감일 등 반영
       if (templateId && w.Kakao.Share.sendCustom) {
         const templateIdNum = Number(templateId);
         if (!Number.isNaN(templateIdNum)) {
