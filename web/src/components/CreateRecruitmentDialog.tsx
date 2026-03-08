@@ -127,8 +127,8 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="deadline">모집 마감일 *</Label>
-            <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} onBlur={() => markTouched("deadline")} className={touched.deadline && errors.deadline ? "border-destructive" : ""} />
+            <Label htmlFor="deadline">모집 마감일·시간 *</Label>
+            <Input id="deadline" type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} onBlur={() => markTouched("deadline")} className={touched.deadline && errors.deadline ? "border-destructive" : ""} />
             <FieldError field="deadline" />
           </div>
           <div className="space-y-1">

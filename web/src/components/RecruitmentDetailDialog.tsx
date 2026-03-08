@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Calendar, Mail, User, CheckCircle2, XCircle, Phone, Building2, LayoutDashboard, Share2 } from "lucide-react";
 import { updateRecruitment } from "@/lib/store";
+import { formatDateTimeDisplay } from "@/lib/util";
 import { shareRecruitment } from "@/lib/kakao-share";
 import { toast } from "sonner";
 import ApplyDialog from "./ApplyDialog";
@@ -93,7 +94,7 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
                 <span className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" /> 마감일
                 </span>
-                <span className="font-semibold">{recruitment.deadline}</span>
+                <span className="font-semibold">{formatDateTimeDisplay(recruitment.deadline)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 text-muted-foreground">

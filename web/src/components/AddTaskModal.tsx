@@ -69,7 +69,7 @@ export default function AddTaskModal({
       title: title.trim(),
       description: description.trim() || undefined,
       repeatCycle,
-      startDate: startDate || new Date().toISOString().split("T")[0],
+      startDate: startDate || new Date().toISOString().slice(0, 16),
       dueDate: dueDate || undefined,
       assignee: assignee === ASSIGNEE_NONE ? undefined : assignee,
       createdBy,
@@ -128,20 +128,20 @@ export default function AddTaskModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="task-start">시작 날짜</Label>
+              <Label htmlFor="task-start">시작 날짜·시간</Label>
               <Input
                 id="task-start"
-                type="date"
+                type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="border-white/10 bg-white/5"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="task-due">마감일</Label>
+              <Label htmlFor="task-due">마감일·시간</Label>
               <Input
                 id="task-due"
-                type="date"
+                type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 className="border-white/10 bg-white/5"

@@ -151,5 +151,9 @@ export const categories: RecruitmentCategory[] = [
   "동아리",
   "대회/공모전",
   "봉사활동",
+  "게임",
+  "간술",
+  "보드게임",
+  "스포츠",
   "기타",
 ];

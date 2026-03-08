@@ -6,6 +6,8 @@
  * 공유 시 Kakao.Share.sendCustom({ templateId, templateArgs }) 호출 (공식 예시와 동일).
  * [도구] > [메시지 템플릿]에서 사용자 인자 이름은 KAKAO_TEMPLATE_ARG_KEYS와 동일하게 입력해야 함.
  */
+import { formatDateTimeDisplay } from "@/lib/util";
+
 const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js";
 const KAKAO_SDK_INTEGRITY = "sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p";
 
@@ -144,7 +146,7 @@ export async function shareRecruitment(
             description: text,
             url,
             인원: headcount,
-            마감일: recruitment.deadline ?? "",
+            마감일: formatDateTimeDisplay(recruitment.deadline ?? ""),
             카테고리: recruitment.category ?? "",
             상태: recruitment.status ?? "",
             작성자: recruitment.author ?? "",

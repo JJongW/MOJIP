@@ -23,6 +23,7 @@ import {
   setHeatmapColorAsync,
 } from "@/lib/workspace-store";
 import type { WorkspaceTask } from "@/lib/types";
+import { formatDateTimeDisplay } from "@/lib/util";
 import WorkspaceEntryGate from "@/components/WorkspaceEntryGate";
 import AddTaskModal from "@/components/AddTaskModal";
 import IndividualHeatmap from "@/components/IndividualHeatmap";
@@ -345,7 +346,7 @@ function TaskRow({
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5 ml-7">
-          {task.dueDate ? `마감 -${task.dueDate}` : ""}
+          {task.dueDate ? `마감 -${formatDateTimeDisplay(task.dueDate)}` : ""}
           {task.assignee && (
             <>
               <span className="inline-block w-2 h-2 rounded-full bg-primary/60 mx-1.5 align-middle" />
