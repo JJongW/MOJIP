@@ -5,5 +5,11 @@
 skills/
 skills-lock.json
 
+# 환경 변수 (실제 키/토큰 절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+*.env
+
 # OS
 .DS_Store
