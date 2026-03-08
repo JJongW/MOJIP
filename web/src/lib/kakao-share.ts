@@ -3,8 +3,6 @@
  * - Kakao JS SDK 사용 시: 카카오톡 공유 창 표시
  * - 미설정 시: Web Share API 또는 클립보드 복사
  */
-import type { Recruitment } from "./types";
-
 const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js";
 const SCRIPT_ID = "kakao-sdk";
 
