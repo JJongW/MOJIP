@@ -1,6 +1,22 @@
-# GitHub 이슈 정리 (복사해서 사용)
+# GitHub 이슈·PR 생성
 
-아래 각 이슈를 GitHub 저장소 **Issues > New issue**에서 제목과 본문을 붙여넣어 생성한 뒤, 원하면 이슈 번호를 PR 설명에 링크하세요.
+## 방법 1: 스크립트로 한 번에 생성 (권장)
+
+**Personal Access Token**이 필요합니다.  
+GitHub > **Settings > Developer settings > Personal access tokens**에서 `repo` 권한으로 토큰을 만든 뒤:
+
+```bash
+cd /Users/sinjong-won/ted.urssu/MOJIP
+GITHUB_TOKEN=ghp_여기에토큰붙여넣기 node scripts/create-github-issues-and-pr.mjs
+```
+
+실행하면 **이슈 6개**와 **PR 1개**가 자동 생성되고, PR 본문에 `Closes #1` ~ `Closes #6`이 들어갑니다.
+
+---
+
+## 방법 2: 수동으로 이슈만 복사해서 생성
+
+아래 각 이슈를 GitHub **Issues > New issue**에서 제목과 본문을 붙여넣어 생성한 뒤, PR은 **Pull requests > New pull request**에서 `feature/mojip-web-supabase` → `main`으로 생성하세요.
 
 ---
 
