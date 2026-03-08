@@ -4,9 +4,27 @@
  * - 미설정 시: Web Share API 또는 클립보드 복사
  *
  * 사용자 정의 템플릿: VITE_KAKAO_SHARE_TEMPLATE_ID 설정 시 sendCustom() 사용.
- * templateArgs 키: title(제목), description(설명), url(공유 링크). [도구] > [메시지 템플릿]에서 동일한 사용자 인자 이름으로 설정.
+ * [도구] > [메시지 템플릿]에서 사용자 인자 이름은 반드시 KAKAO_TEMPLATE_ARG_KEYS와 동일하게 입력해야 함.
  */
 const KAKAO_SDK_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js";
+
+/**
+ * 카카오 사용자 정의 템플릿에 전달하는 인자 이름 (단일 소스)
+ * - 템플릿 빌더에서 사용자 인자를 추가할 때 이 이름을 그대로 복사해 써야 값이 채워짐
+ * - 검증: 코드는 이 키만 사용하며, DEV에서 전송 키를 로그로 출력함
+ */
+export const KAKAO_TEMPLATE_ARG_KEYS = [
+  "title",
+  "description",
+  "url",
+  "인원",
+  "마감일",
+  "카테고리",
+  "상태",
+  "작성자",
+] as const;
+
+export type KakaoTemplateArgs = Record<(typeof KAKAO_TEMPLATE_ARG_KEYS)[number], string>;
 const SCRIPT_ID = "kakao-sdk";
 
 /**
@@ -58,6 +76,25 @@ function loadKakaoAndInit(): Promise<boolean> {
 
 export type ShareResult = "kakao" | "navigator" | "copy" | "none";
 
+/** 공유 시 넘길 모집글 정보 (전체 필드 선택적 — 있으면 템플릿에 인원/마감일 등 표시) */
+export type ShareRecruitmentInput = {
+  id: string;
+  title: string;
+  description: string;
+  author?: string;
+  category?: string;
+  status?: string;
+  currentMembers?: number;
+  maxMembers?: number | null;
+  deadline?: string;
+};
+
+/** 인원 문구 생성 (상세 UI와 동일: "1명 (무제한)" 또는 "2/5명") */
+function formatHeadcount(current: number, max: number | null | undefined): string {
+  if (max != null && max > 0) return `${current}/${max}명`;
+  return `${current}명 (무제한)`;
+}
+
 /**
  * 모집글 공유 실행
  * - Kakao 키 있음: 카카오 공유 창
@@ -65,7 +102,7 @@ export type ShareResult = "kakao" | "navigator" | "copy" | "none";
  * @returns 사용된 공유 방식 (토스트 메시지 등에 활용)
  */
 export async function shareRecruitment(
-  recruitment: { id: string; title: string; description: string },
+  recruitment: ShareRecruitmentInput,
   options: { openApply?: boolean } = {}
 ): Promise<ShareResult> {
   const { openApply = true } = options;
@@ -94,13 +131,29 @@ export async function shareRecruitment(
       if (templateId && w.Kakao.Share.sendCustom) {
         const templateIdNum = Number(templateId);
         if (!Number.isNaN(templateIdNum)) {
+          const headcount =
+            recruitment.currentMembers != null
+              ? formatHeadcount(recruitment.currentMembers, recruitment.maxMembers ?? null)
+              : "";
+          const templateArgs: KakaoTemplateArgs = {
+            title,
+            description: text,
+            url,
+            인원: headcount,
+            마감일: recruitment.deadline ?? "",
+            카테고리: recruitment.category ?? "",
+            상태: recruitment.status ?? "",
+            작성자: recruitment.author ?? "",
+          };
+          if (import.meta.env.DEV) {
+            console.info(
+              "[Kakao 공유] 템플릿 사용자 인자 이름(코드에서 전송). 카카오 [메시지 템플릿]에서 아래와 동일하게 입력했는지 확인하세요:",
+              [...KAKAO_TEMPLATE_ARG_KEYS]
+            );
+          }
           await w.Kakao.Share.sendCustom({
             templateId: templateIdNum,
-            templateArgs: {
-              title,
-              description: text,
-              url,
-            },
+            templateArgs,
           });
           return "kakao";
         }
