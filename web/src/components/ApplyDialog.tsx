@@ -15,11 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LayoutDashboard } from "lucide-react";
 import type { Applicant } from "@/lib/types";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onApply: (applicant: Applicant) => void;
+  onApply: (applicant: Applicant) => Promise<void> | void;
   /** 워크스페이스가 있는 모집글일 때 입장 코드 (있으면 지원 완료 후 안내 모달 표시) */
   accessCode?: string;
 }
@@ -30,8 +31,9 @@ export default function ApplyDialog({ open, onOpenChange, onApply, accessCode }:
   const [phone, setPhone] = useState("");
   const [affiliation, setAffiliation] = useState("");
   const [workspaceCodeModalOpen, setWorkspaceCodeModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) return;
     const applicant: Applicant = {
       id: `app-${Date.now()}`,
@@ -41,15 +43,22 @@ export default function ApplyDialog({ open, onOpenChange, onApply, accessCode }:
       phone: phone.trim() || undefined,
       affiliation: affiliation.trim() || undefined,
     };
-    onApply(applicant);
-    setName("");
-    setEmail("");
-    setPhone("");
-    setAffiliation("");
-    if (accessCode?.trim()) {
-      setWorkspaceCodeModalOpen(true);
-    } else {
-      onOpenChange(false);
+    setSubmitting(true);
+    try {
+      await onApply(applicant);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setAffiliation("");
+      if (accessCode?.trim()) {
+        setWorkspaceCodeModalOpen(true);
+      } else {
+        onOpenChange(false);
+      }
+    } catch {
+      toast.error("지원 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -109,7 +118,7 @@ export default function ApplyDialog({ open, onOpenChange, onApply, accessCode }:
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             취소
           </Button>
-          <Button onClick={handleSubmit} disabled={!name.trim()}>
+          <Button onClick={handleSubmit} disabled={!name.trim() || submitting}>
             지원하기
           </Button>
         </DialogFooter>
