@@ -28,9 +28,8 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
   return (
     <div className="space-y-6">
       {/* Day Tabs */}
-      <div className="w-full overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-        <div className="flex items-center gap-2">
-          {activeTrip.days.map((day) => (
+      <div className="w-full overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent flex items-center gap-2">
+        {activeTrip.days.map((day) => (
             <div key={day.id} className="relative group shrink-0">
               <button
                 onClick={() => setActiveDay(day.id)}
@@ -65,7 +64,6 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
             <Plus className="w-4 h-4" />
             <span className="whitespace-nowrap">일차 추가</span>
           </Button>
-        </div>
       </div>
 
       {/* active day info & search */}

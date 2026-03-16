@@ -27,7 +27,7 @@ export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps)
   return (
     <div 
       className={`
-        relative p-4 border rounded-2xl shadow-sm bg-card flex gap-4 group transition-all duration-300
+        relative p-4 border rounded-2xl shadow-sm bg-card flex gap-4 group transition-all duration-300 w-full min-w-0 overflow-hidden
         ${stop.visited ? 'opacity-50 grayscale-[40%]' : 'hover:border-primary/40 hover:shadow-md'}
       `}
     >
