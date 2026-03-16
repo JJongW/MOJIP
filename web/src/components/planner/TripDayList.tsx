@@ -1,7 +1,6 @@
 import { useTripPlanner } from "@/hooks/useTripPlanner";
 import type { Trip } from "@/lib/types/planner";
 import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Plus, Trash2, CalendarDays } from "lucide-react";
 import TripStopList from "./TripStopList";
 import SearchPlaces from "./SearchPlaces";
@@ -29,9 +28,12 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
   return (
     <div className="space-y-6">
       {/* Day Tabs */}
-      <div className="w-full">
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex w-max items-center gap-2 pb-4">
+      <div className="w-full overflow-hidden">
+        <div
+          className="overflow-x-auto overflow-y-visible pb-1"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}
+        >
+          <div className="flex items-center gap-2 pb-2 w-max">
             {activeTrip.days.map((day) => (
               <div key={day.id} className="relative group shrink-0">
                 <button
@@ -68,8 +70,7 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
               <span className="whitespace-nowrap">일차 추가</span>
             </Button>
           </div>
-          <ScrollBar orientation="horizontal" className="h-1.5" />
-        </ScrollArea>
+        </div>
       </div>
 
       {/* active day info & search */}

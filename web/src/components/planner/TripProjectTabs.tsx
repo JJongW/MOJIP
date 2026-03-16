@@ -1,5 +1,4 @@
 import { useTripPlanner } from "@/hooks/useTripPlanner";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -23,9 +22,12 @@ export default function TripProjectTabs() {
   };
 
   return (
-    <div className="w-full">
-      <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex w-max space-x-2 py-1 items-center">
+    <div className="w-full overflow-hidden">
+      <div
+        className="overflow-x-auto overflow-y-visible"
+        style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}
+      >
+        <div className="flex space-x-2 py-1 items-center w-max">
           {trips.map((trip) => (
             <button
               key={trip.id}
@@ -42,18 +44,17 @@ export default function TripProjectTabs() {
               {trip.title}
             </button>
           ))}
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
+
+          <Button
+            variant="ghost"
+            size="icon"
             className="rounded-full shrink-0 w-8 h-8 text-muted-foreground hover:bg-muted/50 border border-dashed border-muted-foreground/30 ml-2"
             onClick={handleAddNewTrip}
           >
             <Plus className="w-4 h-4" />
           </Button>
         </div>
-        <ScrollBar orientation="horizontal" className="h-1.5 mt-1" />
-      </ScrollArea>
+      </div>
     </div>
   );
 }
