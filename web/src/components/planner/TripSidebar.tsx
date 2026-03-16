@@ -26,7 +26,7 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
 
       {/* 2. Scrollable Content Area */}
       <ScrollArea className="flex-1 w-full relative">
-        <div className="p-4 pb-20 space-y-6">
+        <div className="p-4 pb-20 space-y-6 overflow-x-hidden">
           
           {/* Trip Summary Header */}
           <div className="space-y-3">
