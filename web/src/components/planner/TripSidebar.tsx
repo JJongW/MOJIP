@@ -1,10 +1,12 @@
+import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MapPin, Calendar, Users, Clock, Navigation } from "lucide-react";
+import { MapPin, Calendar, Users, Clock, Navigation, Edit2 } from "lucide-react";
 import TripProjectTabs from "./TripProjectTabs";
-import TripStopList from "./TripStopList";
-import SearchPlaces from "./SearchPlaces";
+import TripDayList from "./TripDayList";
+import TripEditModal from "./TripEditModal";
+import { Button } from "@/components/ui/button";
 
 interface TripSidebarProps {
   activeTrip: Trip;
@@ -12,6 +14,7 @@ interface TripSidebarProps {
 }
 
 export default function TripSidebar({ activeTrip, className }: TripSidebarProps) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
     <div className={`flex flex-col h-full bg-background/80 backdrop-blur-md border-r border-border/50 ${className}`}>
@@ -25,11 +28,21 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
       <ScrollArea className="flex-1 w-full relative">
         <div className="p-4 space-y-6">
           
-          {/* Trip Summary Header Header */}
+          {/* Trip Summary Header */}
           <div className="space-y-3">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">{activeTrip.title}</h1>
-              <p className="text-muted-foreground mt-1 text-sm">{activeTrip.summary}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl font-bold tracking-tight truncate">{activeTrip.title}</h1>
+                <p className="text-muted-foreground mt-1 text-sm line-clamp-2">{activeTrip.summary}</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                onClick={() => setIsEditModalOpen(true)}
+              >
+                <Edit2 className="w-4 h-4" />
+              </Button>
             </div>
             
             <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -53,26 +66,21 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
                 </div>
               </div>
             )}
-            
           </div>
 
           <div className="h-[1px] bg-border w-full" />
 
-          {/* 3. Search Bar */}
-          <div className="sticky top-0 z-20 pb-2 bg-background/80 backdrop-blur-md">
-            <SearchPlaces tripId={activeTrip.id} />
-          </div>
-
-          {/* 4. Stop List Area */}
-          <div className="space-y-4">
-             <h3 className="font-semibold text-sm flex items-center justify-between">
-                루트 및 일정
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">{activeTrip.stops.length} 장소</span>
-             </h3>
-             <TripStopList activeTrip={activeTrip} />
-          </div>
+          {/* 3. Day List & Stop Management */}
+          <TripDayList activeTrip={activeTrip} />
         </div>
       </ScrollArea>
+
+      {/* Edit Trip Modal */}
+      <TripEditModal 
+        trip={activeTrip} 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+      />
     </div>
   );
 }

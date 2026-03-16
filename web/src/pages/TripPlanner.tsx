@@ -1,47 +1,48 @@
-import { useEffect, useState } from "react";
-import { APIProvider } from "@vis.gl/react-google-maps";
-import { useTripPlanner } from "@/hooks/useTripPlanner";
+import { useEffect } from "react";
 import TripSidebar from "@/components/planner/TripSidebar";
 import TripMap from "@/components/planner/TripMap";
+import { useTripPlanner } from "@/hooks/useTripPlanner";
+import { APIProvider } from "@vis.gl/react-google-maps";
+import { Loader2 } from "lucide-react";
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
 export default function TripPlanner() {
-  const { activeTripId, trips } = useTripPlanner();
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  
-  const activeTrip = trips.find(t => t.id === activeTripId) || trips[0];
+  const { trips, activeTripId, fetchTrips, isLoading } = useTripPlanner();
 
   useEffect(() => {
-    // In actual usage, this should come from VITE_GOOGLE_MAPS_API_KEY
-    const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (key) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setApiKey(key);
-    } else {
-      console.warn("VITE_GOOGLE_MAPS_API_KEY is missing. Maps will not load.");
-    }
-  }, []);
+    fetchTrips();
+  }, [fetchTrips]);
+
+  const activeTrip = trips.find((t) => t.id === activeTripId) || trips[0];
+
+  if (isLoading && trips.length === 0) {
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground animate-pulse font-medium">여행 계획을 불러오고 있습니다...</p>
+      </div>
+    );
+  }
+
+  if (!activeTrip) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">여행 계획이 없습니다. 새로운 프로젝트를 시작해보세요!</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col bg-background md:flex-row overflow-hidden">
-      {/* Sidebar: Bottom Sheet on Mobile, Left Panel on Desktop */}
-      <TripSidebar 
-        activeTrip={activeTrip} 
-        className="w-full h-1/2 md:h-full md:w-[400px] lg:w-[480px] shrink-0 border-t md:border-t-0 md:border-r bg-card/95 backdrop-blur-xl z-20 shadow-xl order-2 md:order-1" 
-      />
-      
-      {/* Map Content */}
-      <div className="flex-1 w-full h-1/2 md:h-full relative bg-muted/20 order-1 md:order-2">
-        {apiKey ? (
-          <APIProvider apiKey={apiKey} libraries={['places', 'marker']}>
-             <TripMap activeTrip={activeTrip} />
-          </APIProvider>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-muted-foreground flex-col gap-4">
-            <p>Google Maps API Key is required to render the map.</p>
-            <p className="text-sm">Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.</p>
-          </div>
-        )}
-      </div>
+    <div className="flex h-screen w-screen overflow-hidden bg-background">
+      <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+        <aside className="w-[450px] h-full shrink-0 z-10 shadow-2xl">
+          <TripSidebar activeTrip={activeTrip} />
+        </aside>
+        <main className="flex-1 h-full relative">
+          <TripMap activeTrip={activeTrip} />
+        </main>
+      </APIProvider>
     </div>
   );
 }

@@ -8,9 +8,10 @@ import type { Category } from "@/lib/types/planner";
 
 interface SearchPlacesProps {
   tripId: string;
+  dayId: string;
 }
 
-export default function SearchPlaces({ tripId }: SearchPlacesProps) {
+export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
   const [inputValue, setInputValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,22 +26,18 @@ export default function SearchPlaces({ tripId }: SearchPlacesProps) {
 
   useEffect(() => {
     if (!placesLibrary) return;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setAutocompleteService(new placesLibrary.AutocompleteService());
-    // We need a dummy div for PlacesService as it requires a DOM node even if we don't render it directly
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setPlacesService(new placesLibrary.PlacesService(document.createElement('div')));
   }, [placesLibrary]);
 
   useEffect(() => {
     if (!autocompleteService || !inputValue.trim()) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       setPredictions([]);
       return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
     setIsSearching(true);
-    autocompleteService.getPlacePredictions({ input: inputValue }, (results: google.maps.places.AutocompletePrediction[] | null, status: google.maps.places.PlacesServiceStatus) => {
+    autocompleteService.getPlacePredictions({ input: inputValue }, (results, status) => {
       setIsSearching(false);
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
         setPredictions(results);
@@ -56,9 +53,8 @@ export default function SearchPlaces({ tripId }: SearchPlacesProps) {
     placesService.getDetails({
       placeId,
       fields: ['name', 'geometry', 'formatted_address', 'types']
-    }, (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+    }, (result, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK && result && result.geometry?.location) {
-        // Map Google Types to our Categories
         const types = result.types || [];
         let category: Category = 'Attraction';
         if (types.includes('restaurant') || types.includes('food')) category = 'Food';
@@ -68,14 +64,14 @@ export default function SearchPlaces({ tripId }: SearchPlacesProps) {
         if (types.includes('airport')) category = 'Airport';
         if (types.includes('transit_station')) category = 'Transit';
 
-        addStop(tripId, {
+        addStop(tripId, dayId, {
           name: result.name || 'Unknown Place',
           category,
           lat: result.geometry.location.lat(),
           lng: result.geometry.location.lng(),
           address: result.formatted_address || '',
           placeId,
-          durationMinutes: 60, // Default 1 hour
+          durationMinutes: 60,
         });
         
         setInputValue("");
@@ -94,7 +90,7 @@ export default function SearchPlaces({ tripId }: SearchPlacesProps) {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="장소 검색 (구글 맵) ..."
-          className="pl-9 bg-background"
+          className="pl-9 bg-background/50 focus:bg-background transition-colors"
         />
         {isSearching && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
@@ -102,14 +98,14 @@ export default function SearchPlaces({ tripId }: SearchPlacesProps) {
       </div>
 
       {predictions.length > 0 && (
-        <div className="absolute top-full left-0 w-full mt-1 bg-card border rounded-md shadow-lg overflow-hidden flex flex-col max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 w-full mt-1 bg-card border rounded-xl shadow-xl overflow-hidden flex flex-col max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           {predictions.map((p) => (
             <button
               key={p.place_id}
-              className="px-4 py-2 text-left text-sm hover:bg-muted/50 border-b last:border-b-0 truncate transition-colors"
+              className="px-4 py-3 text-left hover:bg-muted/50 border-b last:border-b-0 transition-colors"
               onClick={() => handleSelectPlace(p.place_id)}
             >
-              <div className="font-medium">{p.structured_formatting.main_text}</div>
+              <div className="font-semibold text-sm">{p.structured_formatting.main_text}</div>
               <div className="text-xs text-muted-foreground truncate">{p.structured_formatting.secondary_text}</div>
             </button>
           ))}

@@ -1,139 +1,352 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Trip, Stop } from '../lib/types/planner';
+import type { Trip, Stop, DayPlan } from '../lib/types/planner';
 import { MOCK_TRIPS } from '../lib/types/mockData';
 import { v4 as uuidv4 } from 'uuid';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { 
+  getTripsFromSupabase, 
+  saveTripToSupabase, 
+  updateTripInSupabase, 
+  deleteTripFromSupabase,
+  addDayToSupabase,
+  removeDayFromSupabase,
+  upsertStopsForDay
+} from '../lib/supabase-planner';
 
 interface TripPlannerState {
   trips: Trip[];
   activeTripId: string | null;
-  setActiveTrip: (id: string) => void;
-  addTrip: (trip: Omit<Trip, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateTrip: (id: string, updates: Partial<Trip>) => void;
-  deleteTrip: (id: string) => void;
-  addStop: (tripId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => void;
-  updateStop: (tripId: string, stopId: string, updates: Partial<Stop>) => void;
-  removeStop: (tripId: string, stopId: string) => void;
-  reorderStops: (tripId: string, startIndex: number, endIndex: number) => void;
-  toggleStopVisited: (tripId: string, stopId: string) => void;
+  activeDayId: string | null;
+  isLoading: boolean;
+  
+  // Basic Actions
+  setActiveTrip: (id: string | null) => void;
+  setActiveDay: (id: string | null) => void;
+  fetchTrips: () => Promise<void>;
+  
+  // Trip Actions
+  addTrip: (trip: Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'days'>) => Promise<void>;
+  updateTrip: (id: string, updates: Partial<Trip>) => Promise<void>;
+  deleteTrip: (id: string) => Promise<void>;
+  
+  // Day Actions
+  addDay: (tripId: string) => Promise<void>;
+  removeDay: (tripId: string, dayId: string) => Promise<void>;
+  
+  // Stop Actions
+  addStop: (tripId: string, dayId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => Promise<void>;
+  updateStop: (tripId: string, dayId: string, stopId: string, updates: Partial<Stop>) => Promise<void>;
+  removeStop: (tripId: string, dayId: string, stopId: string) => Promise<void>;
+  reorderStops: (tripId: string, dayId: string, startIndex: number, endIndex: number) => Promise<void>;
+  toggleStopVisited: (tripId: string, dayId: string, stopId: string) => Promise<void>;
 }
 
 export const useTripPlanner = create<TripPlannerState>()(
   persist(
-    (set) => ({
-      trips: MOCK_TRIPS as Trip[], // init with mock data
+    (set, get) => ({
+      trips: MOCK_TRIPS as Trip[],
       activeTripId: MOCK_TRIPS[0].id,
+      activeDayId: MOCK_TRIPS[0].days[0]?.id || null,
+      isLoading: false,
 
-      setActiveTrip: (id) => set({ activeTripId: id }),
+      setActiveTrip: (id) => {
+        const trip = get().trips.find(t => t.id === id);
+        set({ 
+          activeTripId: id,
+          activeDayId: trip?.days[0]?.id || null
+        });
+      },
 
-      addTrip: (tripData) => set((state) => {
+      setActiveDay: (id) => set({ activeDayId: id }),
+
+      fetchTrips: async () => {
+        if (!isSupabaseConfigured()) return;
+        set({ isLoading: true });
+        try {
+          const trips = await getTripsFromSupabase();
+          if (trips.length > 0) {
+            set((state) => ({ 
+              trips,
+              activeTripId: state.activeTripId || trips[0].id,
+              activeDayId: state.activeDayId || trips[0].days[0]?.id || null
+            }));
+          }
+        } catch (error) {
+          console.error("Failed to fetch trips:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      addTrip: async (tripData) => {
+        const firstDayId = uuidv4();
         const newTrip: Trip = {
           ...tripData,
           id: uuidv4(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          days: [
+            {
+              id: firstDayId,
+              dayNumber: 1,
+              stops: [],
+            }
+          ],
         };
-        return {
+
+        set((state) => ({
           trips: [...state.trips, newTrip],
           activeTripId: newTrip.id,
+          activeDayId: firstDayId
+        }));
+
+        if (isSupabaseConfigured()) {
+          try {
+            await saveTripToSupabase(newTrip);
+          } catch (e) { console.error(e); }
+        }
+      },
+
+      updateTrip: async (id, updates) => {
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === id ? { ...trip, ...updates, updatedAt: new Date().toISOString() } : trip
+          ),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === id);
+          if (trip) {
+            try {
+              await updateTripInSupabase(trip);
+            } catch (e) { console.error(e); }
+          }
+        }
+      },
+
+      deleteTrip: async (id) => {
+        set((state) => {
+          const nextTrips = state.trips.filter((trip) => trip.id !== id);
+          const nextActiveTrip = nextTrips[0] || null;
+          return {
+            trips: nextTrips,
+            activeTripId: state.activeTripId === id ? nextActiveTrip?.id || null : state.activeTripId,
+            activeDayId: state.activeTripId === id ? nextActiveTrip?.days[0]?.id || null : state.activeDayId
+          };
+        });
+
+        if (isSupabaseConfigured()) {
+          try {
+            await deleteTripFromSupabase(id);
+          } catch (e) { console.error(e); }
+        }
+      },
+
+      addDay: async (tripId) => {
+        const newDay: DayPlan = {
+          id: uuidv4(),
+          dayNumber: 0, // will be updated below
+          stops: [],
         };
-      }),
 
-      updateTrip: (id, updates) => set((state) => ({
-        trips: state.trips.map((trip) =>
-          trip.id === id ? { ...trip, ...updates, updatedAt: new Date().toISOString() } : trip
-        ),
-      })),
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const dayNumber = trip.days.length + 1;
+              const updatedDays = [...trip.days, { ...newDay, dayNumber }];
+              return { ...trip, days: updatedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+        }));
 
-      deleteTrip: (id) => set((state) => ({
-        trips: state.trips.filter((trip) => trip.id !== id),
-        activeTripId: state.activeTripId === id 
-          ? (state.trips.filter(t => t.id !== id)[0]?.id || null) 
-          : state.activeTripId
-      })),
-
-      addStop: (tripId, stopData) => set((state) => ({
-        trips: state.trips.map((trip) => {
-          if (trip.id === tripId) {
-            const newStop: Stop = {
-              ...stopData,
-              id: uuidv4(),
-              order: trip.stops.length,
-              visited: false,
-            };
-            return {
-              ...trip,
-              stops: [...trip.stops, newStop],
-              updatedAt: new Date().toISOString(),
-            };
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          const addedDay = trip?.days.find(d => d.id === newDay.id);
+          if (trip && addedDay) {
+            try {
+              await addDayToSupabase(tripId, addedDay);
+            } catch (e) { console.error(e); }
           }
-          return trip;
-        }),
-      })),
+        }
+      },
 
-      updateStop: (tripId, stopId, updates) => set((state) => ({
-        trips: state.trips.map((trip) => {
-          if (trip.id === tripId) {
-            return {
-              ...trip,
-              stops: trip.stops.map((s: Stop) => s.id === stopId ? { ...s, ...updates } : s),
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return trip;
-        }),
-      })),
+      removeDay: async (tripId, dayId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const filteredDays = trip.days.filter((d) => d.id !== dayId);
+              const reorderedDays = filteredDays.map((d, idx) => ({ ...d, dayNumber: idx + 1 }));
+              return { ...trip, days: reorderedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+          activeDayId: state.activeDayId === dayId ? null : state.activeDayId
+        }));
 
-      removeStop: (tripId, stopId) => set((state) => ({
-        trips: state.trips.map((trip) => {
-          if (trip.id === tripId) {
-            const filteredStops = trip.stops.filter((s) => s.id !== stopId);
-            const reorderedStops = filteredStops.map((s: Stop, idx: number) => ({ ...s, order: idx }));
-            return {
-              ...trip,
-              stops: reorderedStops,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return trip;
-        }),
-      })),
+        if (isSupabaseConfigured()) {
+          try {
+            await removeDayFromSupabase(dayId);
+          } catch (e) { console.error(e); }
+        }
+      },
 
-      reorderStops: (tripId, startIndex, endIndex) => set((state) => ({
-        trips: state.trips.map((trip) => {
-          if (trip.id === tripId) {
-            const newStops = Array.from(trip.stops);
-            const [removed] = newStops.splice(startIndex, 1);
-            newStops.splice(endIndex, 0, removed);
-            
-            // update orders
-            const reorderedStops = newStops.map((s: Stop, idx: number) => ({ ...s, order: idx }));
-            
-            return {
-              ...trip,
-              stops: reorderedStops,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return trip;
-        }),
-      })),
+      addStop: async (tripId, dayId, stopData) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const updatedDays = trip.days.map((day) => {
+                if (day.id === dayId) {
+                  const newStop: Stop = {
+                    ...stopData,
+                    id: uuidv4(),
+                    order: day.stops.length,
+                    visited: false,
+                  };
+                  return { ...day, stops: [...day.stops, newStop] };
+                }
+                return day;
+              });
+              return { ...trip, days: updatedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+        }));
 
-      toggleStopVisited: (tripId, stopId) => set((state) => ({
-        trips: state.trips.map((trip) => {
-          if (trip.id === tripId) {
-            return {
-              ...trip,
-              stops: trip.stops.map((s: Stop) => s.id === stopId ? { ...s, visited: !s.visited } : s),
-              updatedAt: new Date().toISOString(),
-            };
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          const day = trip?.days.find(d => d.id === dayId);
+          if (trip && day) {
+            try {
+              await upsertStopsForDay(tripId, day);
+            } catch (e) { console.error(e); }
           }
-          return trip;
-        }),
-      })),
+        }
+      },
+
+      updateStop: async (tripId, dayId, stopId, updates) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const updatedDays = trip.days.map((day) => {
+                if (day.id === dayId) {
+                  return {
+                    ...day,
+                    stops: day.stops.map((s) => s.id === stopId ? { ...s, ...updates } : s),
+                  };
+                }
+                return day;
+              });
+              return { ...trip, days: updatedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          const day = trip?.days.find(d => d.id === dayId);
+          if (trip && day) {
+            try {
+              await upsertStopsForDay(tripId, day);
+            } catch (e) { console.error(e); }
+          }
+        }
+      },
+
+      removeStop: async (tripId, dayId, stopId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const updatedDays = trip.days.map((day) => {
+                if (day.id === dayId) {
+                  const filteredStops = day.stops.filter((s) => s.id !== stopId);
+                  const reorderedStops = filteredStops.map((s, idx) => ({ ...s, order: idx }));
+                  return { ...day, stops: reorderedStops };
+                }
+                return day;
+              });
+              return { ...trip, days: updatedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          const day = trip?.days.find(d => d.id === dayId);
+          if (trip && day) {
+            try {
+              await upsertStopsForDay(tripId, day);
+            } catch (e) { console.error(e); }
+          }
+        }
+      },
+
+      reorderStops: async (tripId, dayId, startIndex, endIndex) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const updatedDays = trip.days.map((day) => {
+                if (day.id === dayId) {
+                  const newStops = Array.from(day.stops);
+                  const [removed] = newStops.splice(startIndex, 1);
+                  newStops.splice(endIndex, 0, removed);
+                  const reorderedStops = newStops.map((s, idx) => ({ ...s, order: idx }));
+                  return { ...day, stops: reorderedStops };
+                }
+                return day;
+              });
+              return { ...trip, days: updatedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          const day = trip?.days.find(d => d.id === dayId);
+          if (trip && day) {
+            try {
+              await upsertStopsForDay(tripId, day);
+            } catch (e) { console.error(e); }
+          }
+        }
+      },
+
+      toggleStopVisited: async (tripId, dayId, stopId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id === tripId) {
+              const updatedDays = trip.days.map((day) => {
+                if (day.id === dayId) {
+                  return {
+                    ...day,
+                    stops: day.stops.map((s) => s.id === stopId ? { ...s, visited: !s.visited } : s),
+                  };
+                }
+                return day;
+              });
+              return { ...trip, days: updatedDays, updatedAt: new Date().toISOString() };
+            }
+            return trip;
+          }),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          const day = trip?.days.find(d => d.id === dayId);
+          if (trip && day) {
+            try {
+              await upsertStopsForDay(tripId, day);
+            } catch (e) { console.error(e); }
+          }
+        }
+      },
     }),
     {
-      name: 'mojip-trip-planner-storage',
+      name: 'mojip-trip-planner-storage-v2', // v2 to avoid conflicts with old schema
     }
   )
 );

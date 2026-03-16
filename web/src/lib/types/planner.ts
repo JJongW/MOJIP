@@ -28,6 +28,13 @@ export interface Stop {
   visited: boolean;
 }
 
+export interface DayPlan {
+  id: string;       // uuid
+  dayNumber: number; // 1-based
+  date?: string;    // ISO date string (e.g. "2023-10-15")
+  stops: Stop[];
+}
+
 export interface Trip {
   id: string; // uuid
   title: string;
@@ -39,7 +46,7 @@ export interface Trip {
   summary?: string; // One line summary
   notes?: string; 
   tips?: string[];
-  stops: Stop[];
+  days: DayPlan[];    // Day-based itinerary
   routeSummary?: RouteSummary;
   createdAt: string; // timestamp
   updatedAt: string; // timestamp

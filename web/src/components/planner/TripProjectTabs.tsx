@@ -7,6 +7,9 @@ export default function TripProjectTabs() {
   const { trips, activeTripId, setActiveTrip, addTrip } = useTripPlanner();
 
   const handleAddNewTrip = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
     // In a real app we'd open a modal here, for MVP we can just create a dummy "New Trip"
     addTrip({
       title: "새로운 여행",
@@ -14,7 +17,8 @@ export default function TripProjectTabs() {
       travelerCount: 1,
       theme: "Free Tour",
       summary: "여행 계획을 세워보세요",
-      stops: [],
+      startDate: today.toISOString(),
+      endDate: tomorrow.toISOString(),
     });
   };
 

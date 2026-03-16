@@ -1,3 +1,6 @@
+import { v4 as uuidv4 } from 'uuid';
+import type { DayPlan } from './planner';
+
 export const MOCK_TRIPS = [
   {
     id: "trip-mock-1",
@@ -17,44 +20,58 @@ export const MOCK_TRIPS = [
     },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    stops: [
+    days: [
       {
-        id: "stop-mock-1-1",
-        name: "간사이 국제공항",
-        category: "Airport",
-        lat: 34.4320,
-        lng: 135.2304,
-        address: "1 Senshukitaminokuta, Izumisano, Osaka 549-0001 일본",
-        durationMinutes: 60,
-        memo: "라피트 탑승권 교환 필수",
-        order: 0,
-        visited: true,
+        id: uuidv4(),
+        dayNumber: 1,
+        date: "2023-10-15",
+        stops: [
+          {
+            id: "stop-mock-1-1",
+            name: "간사이 국제공항",
+            category: "Airport",
+            lat: 34.4320,
+            lng: 135.2304,
+            address: "1 Senshukitaminokuta, Izumisano, Osaka 549-0001 일본",
+            durationMinutes: 60,
+            memo: "라피트 탑승권 교환 필수",
+            order: 0,
+            visited: true,
+          },
+          {
+            id: "stop-mock-1-2",
+            name: "글리코상 (도톤보리)",
+            category: "Attraction",
+            lat: 34.6687,
+            lng: 135.5013,
+            address: "1-chome-10-2 Dotonbori, Chuo Ward, Osaka, 542-0071 일본",
+            durationMinutes: 45,
+            memo: "야경 사진 촬영",
+            order: 1,
+            visited: false,
+          },
+        ]
       },
       {
-        id: "stop-mock-1-2",
-        name: "글리코상 (도톤보리)",
-        category: "Attraction",
-        lat: 34.6687,
-        lng: 135.5013,
-        address: "1-chome-10-2 Dotonbori, Chuo Ward, Osaka, 542-0071 일본",
-        durationMinutes: 45,
-        memo: "야경 사진 촬영",
-        order: 1,
-        visited: false,
-      },
-      {
-        id: "stop-mock-1-3",
-        name: "이치란 도톤보리점 메인빌딩",
-        category: "Food",
-        lat: 34.6691,
-        lng: 135.5032,
-        address: "7-18 Souemoncho, Chuo Ward, Osaka, 542-0084 일본",
-        durationMinutes: 60,
-        memo: "비밀소스 3단계 추천",
-        order: 2,
-        visited: false,
+        id: uuidv4(),
+        dayNumber: 2,
+        date: "2023-10-16",
+        stops: [
+          {
+            id: "stop-mock-1-3",
+            name: "이치란 도톤보리점 메인빌딩",
+            category: "Food",
+            lat: 34.6691,
+            lng: 135.5032,
+            address: "7-18 Souemoncho, Chuo Ward, Osaka, 542-0084 일본",
+            durationMinutes: 60,
+            memo: "비밀소스 3단계 추천",
+            order: 0,
+            visited: false,
+          }
+        ]
       }
-    ]
+    ] as DayPlan[]
   },
   {
     id: "trip-mock-2",
@@ -72,43 +89,57 @@ export const MOCK_TRIPS = [
       totalDistanceKm: 65.4,
       transportMode: "driving"
     },
-    stops: [
-       {
-        id: "stop-mock-2-1",
-        name: "제주국제공항",
-        category: "Airport",
-        lat: 33.5104,
-        lng: 126.4913,
-        address: "제주특별자치도 제주시 공항로 2",
-        durationMinutes: 30,
-        memo: "렌터카 셔틀 탑승장 5번 게이트",
-        order: 0,
-        visited: false,
+    days: [
+      {
+        id: uuidv4(),
+        dayNumber: 1,
+        date: "2023-11-04",
+        stops: [
+          {
+            id: "stop-mock-2-1",
+            name: "제주국제공항",
+            category: "Airport",
+            lat: 33.5104,
+            lng: 126.4913,
+            address: "제주특별자치도 제주시 공항로 2",
+            durationMinutes: 30,
+            memo: "렌터카 셔틀 탑승장 5번 게이트",
+            order: 0,
+            visited: false,
+          },
+          {
+            id: "stop-mock-2-2",
+            name: "애월 카페거리",
+            category: "Cafe",
+            lat: 33.4623,
+            lng: 126.3105,
+            address: "제주특별자치도 제주시 애월읍 애월로1길 25",
+            durationMinutes: 120,
+            memo: "노티드 도넛 포장 대기",
+            order: 1,
+            visited: false,
+          },
+        ]
       },
       {
-        id: "stop-mock-2-2",
-        name: "애월 카페거리",
-        category: "Cafe",
-        lat: 33.4623,
-        lng: 126.3105,
-        address: "제주특별자치도 제주시 애월읍 애월로1길 25",
-        durationMinutes: 120,
-        memo: "노티드 도넛 포장 대기",
-        order: 1,
-        visited: false,
-      },
-      {
-        id: "stop-mock-2-3",
-        name: "오설록 티 뮤지엄",
-        category: "Attraction",
-        lat: 33.3059,
-        lng: 126.2895,
-        address: "제주특별자치도 서귀포시 안덕면 신화역사로 15",
-        durationMinutes: 90,
-        memo: "녹차 아이스크림 먹기",
-        order: 2,
-        visited: false,
+        id: uuidv4(),
+        dayNumber: 2,
+        date: "2023-11-05",
+        stops: [
+          {
+            id: "stop-mock-2-3",
+            name: "오설록 티 뮤지엄",
+            category: "Attraction",
+            lat: 33.3059,
+            lng: 126.2895,
+            address: "제주특별자치도 서귀포시 안덕면 신화역사로 15",
+            durationMinutes: 90,
+            memo: "녹차 아이스크림 먹기",
+            order: 0,
+            visited: false,
+          }
+        ]
       }
-    ]
+    ] as DayPlan[]
   }
 ];
