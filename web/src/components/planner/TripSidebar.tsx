@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { format } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MapPin, Calendar, Users, Clock, Navigation, Edit2 } from "lucide-react";
 import TripProjectTabs from "./TripProjectTabs";
 import TripDayList from "./TripDayList";
@@ -25,8 +24,8 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
       </div>
 
       {/* 2. Scrollable Content Area */}
-      <ScrollArea className="flex-1 w-full relative">
-        <div className="p-4 pb-20 space-y-6 overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
+        <div className="p-4 pb-20 space-y-6">
           
           {/* Trip Summary Header */}
           <div className="space-y-3">
@@ -73,7 +72,7 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
           {/* 3. Day List & Stop Management */}
           <TripDayList activeTrip={activeTrip} />
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Edit Trip Modal */}
       <TripEditModal 
