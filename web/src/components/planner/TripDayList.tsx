@@ -29,7 +29,7 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
     <div className="space-y-6">
       {/* Day Tabs */}
       <div className="flex items-center gap-2 w-full">
-        <div className="flex-1 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+        <div className="flex-1 min-w-0 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
           <div className="flex items-center gap-2">
             {activeTrip.days.map((day) => (
               <div key={day.id} className="relative group shrink-0">
