@@ -21,7 +21,7 @@ interface TripPlannerState {
 export const useTripPlanner = create<TripPlannerState>()(
   persist(
     (set) => ({
-      trips: MOCK_TRIPS, // init with mock data
+      trips: MOCK_TRIPS as Trip[], // init with mock data
       activeTripId: MOCK_TRIPS[0].id,
 
       setActiveTrip: (id) => set({ activeTripId: id }),

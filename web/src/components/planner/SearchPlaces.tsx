@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import { useEffect, useState, useRef } from "react";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Input } from "@/components/ui/input";

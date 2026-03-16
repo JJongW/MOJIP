@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import { Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import type { Trip } from '@/lib/types/planner';
 import { useMemo, useEffect, useState } from 'react';
@@ -37,10 +38,9 @@ export default function TripMap({ activeTrip }: TripMapProps) {
     return { lat: 34.6937, lng: 135.5023 }; // Osaka
   }, [activeTrip.stops]);
 
-  // Calculate and Render Directions
   useEffect(() => {
     if (!directionsService || !directionsRenderer || activeTrip.stops.length < 2) {
-      directionsRenderer?.setDirections({ routes: [] } as google.maps.DirectionsResult);
+      directionsRenderer?.setDirections({ routes: [] } as unknown as google.maps.DirectionsResult);
       return;
     }
 
