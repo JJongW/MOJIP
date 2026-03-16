@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Users, MapPin, Tag, Info } from "lucide-react";
+import { Calendar, Users, MapPin, Tag, Info, Trash2 } from "lucide-react";
 import type { Trip } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
 
@@ -21,7 +21,7 @@ interface TripEditModalProps {
 }
 
 export default function TripEditModal({ trip, isOpen, onClose }: TripEditModalProps) {
-  const { updateTrip } = useTripPlanner();
+  const { updateTrip, deleteTrip } = useTripPlanner();
   const [formData, setFormData] = useState({
     title: trip.title,
     destination: trip.destination,
@@ -51,6 +51,13 @@ export default function TripEditModal({ trip, isOpen, onClose }: TripEditModalPr
       endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
     });
     onClose();
+  };
+
+  const handleDelete = async () => {
+    if (confirm("정말로 이 여행 계획을 삭제하시겠습니까? 관련 모든 일정과 장소가 삭제됩니다.")) {
+      await deleteTrip(trip.id);
+      onClose();
+    }
   };
 
   return (
@@ -159,9 +166,19 @@ export default function TripEditModal({ trip, isOpen, onClose }: TripEditModalPr
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>취소</Button>
-          <Button onClick={handleSave}>저장하기</Button>
+        <DialogFooter className="flex justify-between items-center sm:justify-between w-full">
+          <Button 
+            variant="ghost" 
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleDelete}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            여행 삭제
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>취소</Button>
+            <Button onClick={handleSave}>저장하기</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
