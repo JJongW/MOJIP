@@ -8,6 +8,7 @@ import { fetchRecruitments } from "@/lib/store";
 import Index from "./pages/index";
 import Workspace from "./pages/Workspace";
 import RecruitmentSharePage from "./pages/RecruitmentSharePage";
+import TripPlanner from "./pages/TripPlanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/" element={<Index />} />
           <Route path="/workspace/:id" element={<Workspace />} />
           <Route path="/r/:id" element={<RecruitmentSharePage />} />
+          <Route path="/planner" element={<TripPlanner />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

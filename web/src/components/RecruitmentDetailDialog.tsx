@@ -47,13 +47,14 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
   };
 
   const handleCloseOrReopenClick = () => {
-    if (needsPassword) {
-      setClosePasswordInput("");
-      setClosePasswordError("");
-      setClosePasswordOpen(true);
-    } else {
-      toggleStatus();
+    if (!needsPassword) {
+      // 구버전 모집글(주인 코드 미설정)은 상태 변경을 막아 임의 조작을 방지한다.
+      toast.error("주인 코드가 없는 모집글은 상태를 변경할 수 없습니다.");
+      return;
     }
+    setClosePasswordInput("");
+    setClosePasswordError("");
+    setClosePasswordOpen(true);
   };
 
   const handleClosePasswordConfirm = async () => {
@@ -61,7 +62,7 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
     setClosePasswordError("");
     const ok = await verifyClosePassword(closePasswordInput, recruitment.closePasswordHash);
     if (!ok) {
-      setClosePasswordError("비밀번호가 일치하지 않습니다.");
+      setClosePasswordError("주인 코드가 일치하지 않습니다.");
       return;
     }
     setClosePasswordOpen(false);
@@ -210,14 +211,14 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              {isClosed ? "모집 재개" : "모집 완료"} 비밀번호
+              {isClosed ? "모집 재개" : "모집 완료"} 주인 코드
             </DialogTitle>
             <DialogDescription>
-              작성 시 발급된 비밀번호를 입력하세요. 제3자는 모집 상태를 변경할 수 없습니다.
+              모집글 생성 시 발급된 주인 코드를 입력하세요. 코드가 없으면 상태를 변경할 수 없습니다.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
-            <Label htmlFor="close-password">비밀번호</Label>
+            <Label htmlFor="close-password">주인 코드</Label>
             <Input
               id="close-password"
               type="text"
@@ -225,7 +226,7 @@ export default function RecruitmentDetailDialog({ recruitment, open, onOpenChang
               value={closePasswordInput}
               onChange={(e) => setClosePasswordInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleClosePasswordConfirm()}
-              placeholder="8자리 비밀번호"
+              placeholder="8자리 주인 코드"
               className={closePasswordError ? "border-destructive" : ""}
             />
             {closePasswordError && (

@@ -181,12 +181,12 @@ export default function CreateRecruitmentDialog({ open, onOpenChange, onCreated 
         <AlertDialogHeader>
           <div className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5 shrink-0" />
-            <AlertDialogTitle>모집 종료 비밀번호를 꼭 저장하세요</AlertDialogTitle>
+            <AlertDialogTitle>모집글 주인 코드를 꼭 저장하세요</AlertDialogTitle>
           </div>
           <AlertDialogDescription asChild>
             <div className="space-y-3 pt-1">
               <p className="text-foreground font-medium">
-                이 비밀번호를 잊어버리면 모집 종료·재개를 할 수 없습니다.
+                이 코드를 잊어버리면 모집 완료·재개를 할 수 없습니다.
               </p>
               <p className="rounded-md bg-muted px-3 py-2 font-mono text-lg tracking-wider">
                 {savedPassword}
