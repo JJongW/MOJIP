@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Users, Filter } from "lucide-react";
+import { Plus, Search, Users, Filter, Map } from "lucide-react";
 import RecruitmentCard from "@/components/RecruitmentCard";
 import CreateRecruitmentDialog from "@/components/CreateRecruitmentDialog";
 import RecruitmentDetailDialog from "@/components/RecruitmentDetailDialog";
@@ -60,10 +61,18 @@ const Index = () => {
             <img src="/favicon-32x32.png" alt="" className="h-6 w-6" aria-hidden />
             <h1 className="text-xl font-bold">모여봐요 종원의숲</h1>
           </div>
-          <Button onClick={() => setCreateOpen(true)} size="sm">
-            <Plus className="h-4 w-4 mr-1.5" />
-            새 모집글
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/planner">
+              <Button variant="outline" size="sm" className="border-white/10 gap-1.5">
+                <Map className="h-4 w-4" />
+                여행 플래너
+              </Button>
+            </Link>
+            <Button onClick={() => setCreateOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1.5" />
+              새 모집글
+            </Button>
+          </div>
         </div>
       </header>
 
