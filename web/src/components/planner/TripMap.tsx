@@ -17,7 +17,7 @@ interface TripMapProps {
 export default function TripMap({ activeTrip }: TripMapProps) {
   const map = useMap('mojip-trip-map-styled');
   const routesLibrary = useMapsLibrary('routes');
-  const { activeDayId } = useTripPlanner();
+  const { activeDayId, setLegs } = useTripPlanner();
   
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -70,6 +70,13 @@ export default function TripMap({ activeTrip }: TripMapProps) {
     }, (result, status) => {
       if (status === google.maps.DirectionsStatus.OK && result) {
         directionsRenderer.setDirections(result);
+        
+        // Extract distance and duration for each leg
+        const legs = result.routes[0].legs.map(leg => ({
+          distance: leg.distance?.text || '',
+          duration: leg.duration?.text || ''
+        }));
+        setLegs(legs);
       }
     });
   }, [directionsService, directionsRenderer, stops]);

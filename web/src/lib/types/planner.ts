@@ -28,6 +28,11 @@ export interface Stop {
   visited: boolean;
 }
 
+export interface LegInfo {
+  distance: string;
+  duration: string;
+}
+
 export interface DayPlan {
   id: string;       // uuid
   dayNumber: number; // 1-based

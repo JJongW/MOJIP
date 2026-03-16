@@ -18,11 +18,13 @@ interface TripPlannerState {
   trips: Trip[];
   activeTripId: string | null;
   activeDayId: string | null;
+  activeDayLegs: { distance: string; duration: string }[];
   isLoading: boolean;
   
   // Basic Actions
   setActiveTrip: (id: string | null) => void;
   setActiveDay: (id: string | null) => void;
+  setLegs: (legs: { distance: string; duration: string }[]) => void;
   fetchTrips: () => Promise<void>;
   
   // Trip Actions
@@ -48,17 +50,24 @@ export const useTripPlanner = create<TripPlannerState>()(
       trips: MOCK_TRIPS as Trip[],
       activeTripId: MOCK_TRIPS[0].id,
       activeDayId: MOCK_TRIPS[0].days[0]?.id || null,
+      activeDayLegs: [],
       isLoading: false,
 
       setActiveTrip: (id) => {
         const trip = get().trips.find(t => t.id === id);
         set({ 
           activeTripId: id,
-          activeDayId: trip?.days[0]?.id || null
+          activeDayId: trip?.days[0]?.id || null,
+          activeDayLegs: [] // Reset legs when switching trip
         });
       },
 
-      setActiveDay: (id) => set({ activeDayId: id }),
+      setActiveDay: (id) => set({ 
+        activeDayId: id,
+        activeDayLegs: [] // Reset legs when switching day
+      }),
+
+      setLegs: (legs) => set({ activeDayLegs: legs }),
 
       fetchTrips: async () => {
         if (!isSupabaseConfigured()) return;
