@@ -24,27 +24,29 @@ export default function TripProjectTabs() {
 
   return (
     <div className="flex items-center w-full gap-2">
-      <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex w-max space-x-2 py-1">
-          {trips.map((trip) => (
-            <button
-              key={trip.id}
-              onClick={() => setActiveTrip(trip.id)}
-              className={`
-                px-4 py-1.5 text-sm font-medium rounded-full transition-all border
-                ${
-                  activeTripId === trip.id
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-background text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground"
-                }
-              `}
-            >
-              {trip.title}
-            </button>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" className="invisible" />
-      </ScrollArea>
+      <div className="flex-1 min-w-0">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex w-max space-x-2 py-1">
+            {trips.map((trip) => (
+              <button
+                key={trip.id}
+                onClick={() => setActiveTrip(trip.id)}
+                className={`
+                  px-4 py-1.5 text-sm font-medium rounded-full transition-all border shrink-0
+                  ${
+                    activeTripId === trip.id
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground"
+                  }
+                `}
+              >
+                {trip.title}
+              </button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" className="h-1.5 mt-1" />
+        </ScrollArea>
+      </div>
       <Button 
         variant="ghost" 
         size="icon" 
