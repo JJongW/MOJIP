@@ -1,6 +1,7 @@
 import { useTripPlanner } from "@/hooks/useTripPlanner";
 import type { Trip } from "@/lib/types/planner";
 import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Plus, Trash2, CalendarDays } from "lucide-react";
 import TripStopList from "./TripStopList";
 import SearchPlaces from "./SearchPlaces";
@@ -28,42 +29,47 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
   return (
     <div className="space-y-6">
       {/* Day Tabs */}
-      <div className="w-full overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent flex items-center gap-2">
-        {activeTrip.days.map((day) => (
-            <div key={day.id} className="relative group shrink-0">
-              <button
-                onClick={() => setActiveDay(day.id)}
-                className={`
-                  px-4 py-2 text-sm font-semibold rounded-xl transition-all border flex items-center gap-2
-                  ${activeDayId === day.id || (!activeDayId && day.dayNumber === 1)
-                    ? "bg-primary text-primary-foreground border-primary shadow-md"
-                    : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground"
-                  }
-                `}
-              >
-                <CalendarDays className="w-3.5 h-3.5" />
-                Day {day.dayNumber}
-              </button>
-              {activeTrip.days.length > 1 && (
+      <div className="w-full">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex w-max items-center gap-2 pb-4">
+            {activeTrip.days.map((day) => (
+              <div key={day.id} className="relative group shrink-0">
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleRemoveDay(day.id); }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-background z-10"
+                  onClick={() => setActiveDay(day.id)}
+                  className={`
+                    px-4 py-2 text-sm font-semibold rounded-xl transition-all border flex items-center gap-2
+                    ${activeDayId === day.id || (!activeDayId && day.dayNumber === 1)
+                      ? "bg-primary text-primary-foreground border-primary shadow-md"
+                      : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground"
+                    }
+                  `}
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  Day {day.dayNumber}
                 </button>
-              )}
-            </div>
-          ))}
+                {activeTrip.days.length > 1 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleRemoveDay(day.id); }}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-background z-10"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ))}
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleAddDay}
-            className="rounded-xl border border-dashed border-muted-foreground/30 text-muted-foreground h-[38px] px-3 shrink-0 flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="whitespace-nowrap">일차 추가</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleAddDay}
+              className="rounded-xl border border-dashed border-muted-foreground/30 text-muted-foreground h-[38px] px-3 shrink-0 flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="whitespace-nowrap">일차 추가</span>
+            </Button>
+          </div>
+          <ScrollBar orientation="horizontal" className="h-1.5" />
+        </ScrollArea>
       </div>
 
       {/* active day info & search */}

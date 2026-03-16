@@ -36,8 +36,8 @@ export default function TripPlanner() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
       <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-        <aside className="w-[450px] h-full shrink-0 z-10 shadow-2xl">
-          <TripSidebar activeTrip={activeTrip} />
+        <aside className="w-[450px] min-w-[450px] max-w-[450px] flex-basis-[450px] h-full shrink-0 z-10 shadow-2xl overflow-hidden bg-background">
+          <TripSidebar activeTrip={activeTrip} className="w-full" />
         </aside>
         <main className="flex-1 h-full relative">
           <TripMap activeTrip={activeTrip} />

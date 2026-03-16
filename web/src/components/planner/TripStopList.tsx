@@ -35,7 +35,7 @@ export default function TripStopList({ tripId, day }: TripStopListProps) {
           <div 
             {...provided.droppableProps} 
             ref={provided.innerRef}
-            className="flex flex-col relative"
+            className="flex flex-col relative w-full min-w-0"
           >
             {day.stops.map((stop, index) => (
               <div key={stop.id} className="flex flex-col">
