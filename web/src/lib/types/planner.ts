@@ -1,4 +1,10 @@
-export type Category = 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
+export type Category =
   | 'Attraction'
   | 'Food'
   | 'Cafe'
@@ -51,6 +57,7 @@ export interface Trip {
   summary?: string; // One line summary
   notes?: string; 
   tips?: string[];
+  checklist?: ChecklistItem[];
   days: DayPlan[];    // Day-based itinerary
   routeSummary?: RouteSummary;
   createdAt: string; // timestamp

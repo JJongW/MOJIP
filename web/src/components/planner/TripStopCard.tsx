@@ -101,12 +101,17 @@ export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps)
             className="mt-3 w-full text-xs bg-muted/30 p-3 rounded-xl border border-primary/30 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
             rows={2}
           />
+        ) : stop.memo ? (
+          <div className="mt-2.5 text-[13px] bg-muted/30 p-3 rounded-xl border border-border/40 text-muted-foreground/90 font-medium leading-relaxed">
+            {stop.memo}
+          </div>
         ) : (
-          stop.memo && (
-            <div className="mt-2.5 text-[13px] bg-muted/30 p-3 rounded-xl border border-border/40 text-muted-foreground/90 font-medium leading-relaxed">
-              {stop.memo}
-            </div>
-          )
+          <button
+            onClick={() => setIsEditing(true)}
+            className="mt-2 text-xs text-muted-foreground/50 hover:text-primary transition-colors flex items-center gap-1"
+          >
+            <Edit3 className="w-3 h-3" /> 메모 추가
+          </button>
         )}
       </div>
     </div>

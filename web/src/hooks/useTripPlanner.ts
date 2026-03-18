@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Trip, Stop, DayPlan } from '../lib/types/planner';
+import type { Trip, Stop, DayPlan, ChecklistItem } from '../lib/types/planner';
 import { MOCK_TRIPS } from '../lib/types/mockData';
 import { v4 as uuidv4 } from 'uuid';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -36,6 +36,11 @@ interface TripPlannerState {
   addDay: (tripId: string) => Promise<void>;
   removeDay: (tripId: string, dayId: string) => Promise<void>;
   
+  // Checklist Actions
+  addChecklistItem: (tripId: string, text: string) => Promise<void>;
+  toggleChecklistItem: (tripId: string, itemId: string) => Promise<void>;
+  removeChecklistItem: (tripId: string, itemId: string) => Promise<void>;
+
   // Stop Actions
   addStop: (tripId: string, dayId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => Promise<void>;
   updateStop: (tripId: string, dayId: string, stopId: string, updates: Partial<Stop>) => Promise<void>;
@@ -198,6 +203,59 @@ export const useTripPlanner = create<TripPlannerState>()(
           try {
             await removeDayFromSupabase(dayId);
           } catch (e) { console.error(e); }
+        }
+      },
+
+      addChecklistItem: async (tripId, text) => {
+        const newItem: ChecklistItem = { id: uuidv4(), text, checked: false };
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? { ...trip, checklist: [...(trip.checklist || []), newItem], updatedAt: new Date().toISOString() }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      toggleChecklistItem: async (tripId, itemId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? {
+                  ...trip,
+                  checklist: (trip.checklist || []).map((item) =>
+                    item.id === itemId ? { ...item, checked: !item.checked } : item
+                  ),
+                  updatedAt: new Date().toISOString(),
+                }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      removeChecklistItem: async (tripId, itemId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? {
+                  ...trip,
+                  checklist: (trip.checklist || []).filter((item) => item.id !== itemId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
         }
       },
 
