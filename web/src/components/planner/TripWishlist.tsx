@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
-import { Plus, Trash2, ShoppingBag, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, Pencil, Check, X, ChevronDown } from "lucide-react";
 
 interface TripWishlistProps {
   trip: Trip;
@@ -15,6 +15,7 @@ export default function TripWishlist({ trip }: TripWishlistProps) {
   const [selectedPerson, setSelectedPerson] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   const wishlist = trip.wishlist || [];
   const travelerCount = trip.travelerCount ?? 1;
@@ -57,14 +58,22 @@ export default function TripWishlist({ trip }: TripWishlistProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-        <ShoppingBag className="w-4 h-4 text-pink-400" /> 사고 싶은 거
-        {wishlist.length > 0 && (
-          <span className="text-xs text-muted-foreground font-normal">
-            {wishlist.filter(i => i.bought).length}/{wishlist.length}
-          </span>
-        )}
-      </h3>
+      <button
+        onClick={() => setCollapsed(c => !c)}
+        className="w-full flex items-center gap-2 text-left"
+      >
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 flex-1">
+          <ShoppingBag className="w-4 h-4 text-pink-400" /> 사고 싶은 거
+          {wishlist.length > 0 && (
+            <span className="text-xs text-muted-foreground font-normal">
+              {wishlist.filter(i => i.bought).length}/{wishlist.length}
+            </span>
+          )}
+        </h3>
+        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
+      </button>
+
+      {!collapsed && <>
 
       {/* Person Tabs */}
       {travelerCount > 1 && (
@@ -169,6 +178,8 @@ export default function TripWishlist({ trip }: TripWishlistProps) {
           <Plus className="w-4 h-4" />
         </button>
       </div>
+
+      </>}
     </div>
   );
 }

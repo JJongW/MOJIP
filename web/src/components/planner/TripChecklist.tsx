@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
-import { Plus, Trash2, Check, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Check, Pencil, X, ChevronDown } from "lucide-react";
 
 interface TripChecklistProps {
   trip: Trip;
@@ -15,6 +15,7 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
   const [selectedPerson, setSelectedPerson] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   const checklist = trip.checklist || [];
   const travelerCount = trip.travelerCount ?? 1;
@@ -57,14 +58,22 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-        🎒 준비물
-        {checklist.length > 0 && (
-          <span className="text-xs text-muted-foreground font-normal">
-            {checklist.filter(i => i.checked).length}/{checklist.length}
-          </span>
-        )}
-      </h3>
+      <button
+        onClick={() => setCollapsed(c => !c)}
+        className="w-full flex items-center gap-2 text-left group/header"
+      >
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 flex-1">
+          🎒 준비물
+          {checklist.length > 0 && (
+            <span className="text-xs text-muted-foreground font-normal">
+              {checklist.filter(i => i.checked).length}/{checklist.length}
+            </span>
+          )}
+        </h3>
+        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
+      </button>
+
+      {!collapsed && <>
 
       {/* Person Tabs */}
       {travelerCount > 1 && (
@@ -165,6 +174,8 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
           <Plus className="w-4 h-4" />
         </button>
       </div>
+
+      </>}
     </div>
   );
 }
