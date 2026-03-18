@@ -20,6 +20,7 @@ interface TripPlannerState {
   activeDayId: string | null;
   activeDayLegs: { distance: string; duration: string }[];
   focusedStopId: string | null;
+  focusedSavedPlaceId: string | null;
   isLoading: boolean;
 
   // Basic Actions
@@ -27,6 +28,7 @@ interface TripPlannerState {
   setActiveDay: (id: string | null) => void;
   setLegs: (legs: { distance: string; duration: string }[]) => void;
   setFocusedStop: (id: string | null) => void;
+  setFocusedSavedPlace: (id: string | null) => void;
   fetchTrips: () => Promise<void>;
   
   // Trip Actions
@@ -77,6 +79,7 @@ export const useTripPlanner = create<TripPlannerState>()(
       activeDayId: MOCK_TRIPS[0].days[0]?.id || null,
       activeDayLegs: [],
       focusedStopId: null,
+      focusedSavedPlaceId: null,
       isLoading: false,
 
       setActiveTrip: (id) => {
@@ -96,6 +99,8 @@ export const useTripPlanner = create<TripPlannerState>()(
       setLegs: (legs) => set({ activeDayLegs: legs }),
 
       setFocusedStop: (id) => set({ focusedStopId: id }),
+
+      setFocusedSavedPlace: (id) => set({ focusedSavedPlaceId: id }),
 
       fetchTrips: async () => {
         if (!isSupabaseConfigured()) return;

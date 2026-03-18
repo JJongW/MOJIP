@@ -21,7 +21,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 export default function TripSavedPlaces({ trip }: TripSavedPlacesProps) {
-  const { addSavedPlace, removeSavedPlace } = useTripPlanner();
+  const { addSavedPlace, removeSavedPlace, setFocusedSavedPlace } = useTripPlanner();
   const [collapsed, setCollapsed] = useState(false);
 
   const savedPlaces = trip.savedPlaces || [];
@@ -79,7 +79,8 @@ export default function TripSavedPlaces({ trip }: TripSavedPlacesProps) {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`flex items-center gap-2 p-2.5 bg-card border rounded-xl group transition-shadow ${
+                        onClick={() => setFocusedSavedPlace(place.id)}
+                        className={`flex items-center gap-2 p-2.5 bg-card border rounded-xl group transition-shadow cursor-pointer ${
                           snapshot.isDragging ? "shadow-lg ring-1 ring-orange-400/40 scale-[1.02]" : "hover:border-orange-400/30"
                         }`}
                       >
