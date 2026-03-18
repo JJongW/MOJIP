@@ -17,7 +17,7 @@ interface TripMapProps {
 export default function TripMap({ activeTrip }: TripMapProps) {
   const map = useMap('mojip-trip-map-styled');
   const routesLibrary = useMapsLibrary('routes');
-  const { activeDayId, setLegs } = useTripPlanner();
+  const { activeDayId, setLegs, focusedStopId, setFocusedStop } = useTripPlanner();
   
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -88,6 +88,17 @@ export default function TripMap({ activeTrip }: TripMapProps) {
     stops.forEach(stop => bounds.extend({ lat: stop.lat, lng: stop.lng }));
     map.fitBounds(bounds, { top: 80, right: 80, bottom: 80, left: 80 });
   }, [map, stops]);
+
+  // 4. Focus on a specific stop when selected from sidebar
+  useEffect(() => {
+    if (!map || !focusedStopId) return;
+    const stop = stops.find(s => s.id === focusedStopId);
+    if (!stop) return;
+    map.panTo({ lat: stop.lat, lng: stop.lng });
+    map.setZoom(17);
+    setSelectedStop(stop);
+    setFocusedStop(null);
+  }, [focusedStopId, map, stops]);
 
   return (
     <div className="w-full h-full relative overflow-hidden">

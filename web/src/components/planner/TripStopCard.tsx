@@ -10,7 +10,7 @@ interface TripStopCardProps {
 }
 
 export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps) {
-  const { removeStop, toggleStopVisited, updateStop } = useTripPlanner();
+  const { removeStop, toggleStopVisited, updateStop, setFocusedStop } = useTripPlanner();
   const [isEditing, setIsEditing] = useState(false);
   const [memoValue, setMemoValue] = useState(stop.memo || "");
   const [editingTime, setEditingTime] = useState(false);
@@ -32,8 +32,9 @@ export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps)
 
   return (
     <div
+      onClick={() => setFocusedStop(stop.id)}
       className={`
-        relative p-4 border rounded-2xl shadow-sm bg-card flex gap-4 group transition-all duration-300 w-full min-w-0 overflow-hidden
+        relative p-4 border rounded-2xl shadow-sm bg-card flex gap-4 group transition-all duration-300 w-full min-w-0 overflow-hidden cursor-pointer
         ${stop.visited ? 'opacity-50 grayscale-[40%]' : 'hover:border-primary/40 hover:shadow-md'}
       `}
     >
