@@ -1,30 +1,58 @@
 import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
-import { Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, Pencil, Check, X } from "lucide-react";
 
 interface TripWishlistProps {
   trip: Trip;
 }
 
+const getPersonLabel = (index: number) => index === 0 ? "나" : `동행 ${index}`;
+
 export default function TripWishlist({ trip }: TripWishlistProps) {
-  const { addWishlistItem, toggleWishlistItem, removeWishlistItem } = useTripPlanner();
+  const { addWishlistItem, toggleWishlistItem, updateWishlistItem, removeWishlistItem } = useTripPlanner();
   const [inputValue, setInputValue] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const wishlist = trip.wishlist || [];
+  const travelerCount = trip.travelerCount ?? 1;
+  const filtered = wishlist.filter(item => (item.personIndex ?? 0) === selectedPerson);
 
   const handleAdd = async () => {
     const text = inputValue.trim();
     if (!text) return;
-    await addWishlistItem(trip.id, text);
+    await addWishlistItem(trip.id, text, selectedPerson);
     setInputValue("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleAdd();
     }
+  };
+
+  const startEdit = (id: string, text: string) => {
+    setEditingId(id);
+    setEditValue(text);
+  };
+
+  const saveEdit = async (id: string) => {
+    const text = editValue.trim();
+    if (text) await updateWishlistItem(trip.id, id, text);
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const handleEditKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      saveEdit(id);
+    }
+    if (e.key === "Escape") cancelEdit();
   };
 
   return (
@@ -38,53 +66,98 @@ export default function TripWishlist({ trip }: TripWishlistProps) {
         )}
       </h3>
 
-      {wishlist.length === 0 && (
-        <p className="text-xs text-muted-foreground/60 py-2">사고 싶은 아이템을 추가해보세요</p>
+      {/* Person Tabs */}
+      {travelerCount > 1 && (
+        <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+          {Array.from({ length: travelerCount }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedPerson(i)}
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-full transition-all ${
+                selectedPerson === i
+                  ? "bg-pink-400 text-white"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {getPersonLabel(i)}
+            </button>
+          ))}
+        </div>
       )}
 
-      <div className="space-y-1.5">
-        {wishlist.map((item) => (
-          <div key={item.id} className="flex items-center gap-2.5 group py-1">
+      {filtered.length === 0 && (
+        <p className="text-xs text-muted-foreground/60 py-1">사고 싶은 아이템을 추가해보세요</p>
+      )}
+
+      <div className="space-y-1">
+        {filtered.map((item) => (
+          <div key={item.id} className="flex items-center gap-2 group py-1">
             <button
               onClick={() => toggleWishlistItem(trip.id, item.id)}
-              className={`
-                w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all
-                ${item.bought
+              className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                item.bought
                   ? "bg-pink-400 border-pink-400 text-white"
                   : "border-border hover:border-pink-400/60"
-                }
-              `}
+              }`}
             >
               {item.bought && (
                 <svg className="w-2.5 h-2.5" viewBox="0 0 10 10" fill="none">
-                  <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
             </button>
-            <span
-              className={`flex-1 text-sm transition-all ${
-                item.bought ? "line-through opacity-50 text-muted-foreground" : "text-foreground"
-              }`}
-            >
-              {item.text}
-            </span>
-            <button
-              onClick={() => removeWishlistItem(trip.id, item.id)}
-              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 hover:text-destructive rounded-md transition-all text-muted-foreground"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
+
+            {editingId === item.id ? (
+              <input
+                autoFocus
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => handleEditKeyDown(e, item.id)}
+                onBlur={() => saveEdit(item.id)}
+                className="flex-1 text-xs bg-muted/40 border border-pink-400/30 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-pink-400/20"
+              />
+            ) : (
+              <span
+                className={`flex-1 text-sm transition-all ${
+                  item.bought ? "line-through opacity-50 text-muted-foreground" : "text-foreground"
+                }`}
+              >
+                {item.text}
+              </span>
+            )}
+
+            <div className={`flex gap-0.5 ${editingId === item.id ? "" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+              {editingId === item.id ? (
+                <>
+                  <button onClick={() => saveEdit(item.id)} className="p-1 hover:bg-pink-400/10 hover:text-pink-400 rounded-md transition-colors text-muted-foreground">
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <button onClick={cancelEdit} className="p-1 hover:bg-muted rounded-md transition-colors text-muted-foreground">
+                    <X className="w-3 h-3" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => startEdit(item.id, item.text)} className="p-1 hover:bg-muted hover:text-foreground rounded-md transition-colors text-muted-foreground">
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => removeWishlistItem(trip.id, item.id)} className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors text-muted-foreground">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="아이템 추가..."
+          onKeyDown={handleInputKeyDown}
+          placeholder={travelerCount > 1 ? `${getPersonLabel(selectedPerson)} 아이템 추가...` : "아이템 추가..."}
           className="flex-1 text-xs bg-muted/30 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400/20 focus:border-pink-400/40 transition-all placeholder:text-muted-foreground/50"
         />
         <button

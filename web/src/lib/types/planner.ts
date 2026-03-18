@@ -2,12 +2,14 @@ export interface ChecklistItem {
   id: string;
   text: string;
   checked: boolean;
+  personIndex?: number;
 }
 
 export interface WishlistItem {
   id: string;
   text: string;
   bought: boolean;
+  personIndex?: number;
 }
 
 export type Category =

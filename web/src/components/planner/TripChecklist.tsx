@@ -1,31 +1,59 @@
 import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
-import { Plus, Trash2, Check } from "lucide-react";
+import { Plus, Trash2, Check, Pencil, X } from "lucide-react";
 
 interface TripChecklistProps {
   trip: Trip;
 }
 
+const getPersonLabel = (index: number) => index === 0 ? "나" : `동행 ${index}`;
+
 export default function TripChecklist({ trip }: TripChecklistProps) {
-  const { addChecklistItem, toggleChecklistItem, removeChecklistItem } = useTripPlanner();
+  const { addChecklistItem, toggleChecklistItem, updateChecklistItem, removeChecklistItem } = useTripPlanner();
   const [inputValue, setInputValue] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const checklist = trip.checklist || [];
+  const travelerCount = trip.travelerCount ?? 1;
+  const filtered = checklist.filter(item => (item.personIndex ?? 0) === selectedPerson);
 
   const handleAdd = async () => {
     const text = inputValue.trim();
     if (!text) return;
-    await addChecklistItem(trip.id, text);
+    await addChecklistItem(trip.id, text, selectedPerson);
     setInputValue("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleAdd();
     }
   };
 
-  const checklist = trip.checklist || [];
+  const startEdit = (id: string, text: string) => {
+    setEditingId(id);
+    setEditValue(text);
+  };
+
+  const saveEdit = async (id: string) => {
+    const text = editValue.trim();
+    if (text) await updateChecklistItem(trip.id, id, text);
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const handleEditKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      saveEdit(id);
+    }
+    if (e.key === "Escape") cancelEdit();
+  };
 
   return (
     <div className="space-y-3">
@@ -38,52 +66,94 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
         )}
       </h3>
 
-      {checklist.length === 0 && (
-        <p className="text-xs text-muted-foreground/60 py-2">준비물을 추가해보세요</p>
+      {/* Person Tabs */}
+      {travelerCount > 1 && (
+        <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+          {Array.from({ length: travelerCount }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedPerson(i)}
+              className={`shrink-0 text-xs px-3 py-1.5 rounded-full transition-all ${
+                selectedPerson === i
+                  ? "bg-primary text-white"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {getPersonLabel(i)}
+            </button>
+          ))}
+        </div>
       )}
 
-      <div className="space-y-1.5">
-        {checklist.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center gap-2.5 group py-1"
-          >
+      {filtered.length === 0 && (
+        <p className="text-xs text-muted-foreground/60 py-1">준비물을 추가해보세요</p>
+      )}
+
+      <div className="space-y-1">
+        {filtered.map((item) => (
+          <div key={item.id} className="flex items-center gap-2 group py-1">
             <button
               onClick={() => toggleChecklistItem(trip.id, item.id)}
-              className={`
-                w-4.5 h-4.5 w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center shrink-0 transition-all
-                ${item.checked
+              className={`w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+                item.checked
                   ? "bg-primary border-primary text-white"
                   : "border-border hover:border-primary/60"
-                }
-              `}
+              }`}
             >
               {item.checked && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
             </button>
-            <span
-              className={`flex-1 text-sm transition-all ${
-                item.checked ? "line-through opacity-50 text-muted-foreground" : "text-foreground"
-              }`}
-            >
-              {item.text}
-            </span>
-            <button
-              onClick={() => removeChecklistItem(trip.id, item.id)}
-              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 hover:text-destructive rounded-md transition-all text-muted-foreground"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
+
+            {editingId === item.id ? (
+              <input
+                autoFocus
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => handleEditKeyDown(e, item.id)}
+                onBlur={() => saveEdit(item.id)}
+                className="flex-1 text-xs bg-muted/40 border border-primary/30 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            ) : (
+              <span
+                className={`flex-1 text-sm transition-all ${
+                  item.checked ? "line-through opacity-50 text-muted-foreground" : "text-foreground"
+                }`}
+              >
+                {item.text}
+              </span>
+            )}
+
+            <div className={`flex gap-0.5 ${editingId === item.id ? "" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+              {editingId === item.id ? (
+                <>
+                  <button onClick={() => saveEdit(item.id)} className="p-1 hover:bg-primary/10 hover:text-primary rounded-md transition-colors text-muted-foreground">
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <button onClick={cancelEdit} className="p-1 hover:bg-muted rounded-md transition-colors text-muted-foreground">
+                    <X className="w-3 h-3" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => startEdit(item.id, item.text)} className="p-1 hover:bg-muted hover:text-foreground rounded-md transition-colors text-muted-foreground">
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => removeChecklistItem(trip.id, item.id)} className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors text-muted-foreground">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="준비물 추가..."
+          onKeyDown={handleInputKeyDown}
+          placeholder={travelerCount > 1 ? `${getPersonLabel(selectedPerson)} 준비물 추가...` : "준비물 추가..."}
           className="flex-1 text-xs bg-muted/30 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-muted-foreground/50"
         />
         <button
