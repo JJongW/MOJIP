@@ -67,6 +67,7 @@ export interface Trip {
   tips?: string[];
   checklist?: ChecklistItem[];
   wishlist?: WishlistItem[];
+  travelerNames?: string[];
   days: DayPlan[];    // Day-based itinerary
   routeSummary?: RouteSummary;
   createdAt: string; // timestamp

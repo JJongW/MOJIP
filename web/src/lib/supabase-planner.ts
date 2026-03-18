@@ -22,6 +22,7 @@ type DbTrip = {
   tips: string[] | null;
   checklist: ChecklistItem[] | null;
   wishlist: WishlistItem[] | null;
+  traveler_names: string[] | null;
   route_total_duration_min: number | null;
   route_total_distance_km: number | null;
   route_transport_mode: string | null;
@@ -106,6 +107,7 @@ function toTrip(row: DbTrip, days: DayPlan[]): Trip {
     tips: row.tips ?? undefined,
     checklist: row.checklist ?? undefined,
     wishlist: row.wishlist ?? undefined,
+    travelerNames: row.traveler_names ?? undefined,
     days,
     routeSummary,
     createdAt: row.created_at,
@@ -185,6 +187,7 @@ export async function saveTripToSupabase(trip: Trip): Promise<void> {
     tips: trip.tips ?? null,
     checklist: trip.checklist ?? null,
     wishlist: trip.wishlist ?? null,
+    traveler_names: trip.travelerNames ?? null,
     route_total_duration_min: trip.routeSummary?.totalDurationMin ?? null,
     route_total_distance_km: trip.routeSummary?.totalDistanceKm ?? null,
     route_transport_mode: trip.routeSummary?.transportMode ?? null,
@@ -220,6 +223,7 @@ export async function updateTripInSupabase(trip: Trip): Promise<void> {
       tips: trip.tips ?? null,
       checklist: trip.checklist ?? null,
       wishlist: trip.wishlist ?? null,
+      traveler_names: trip.travelerNames ?? null,
       route_total_duration_min: trip.routeSummary?.totalDurationMin ?? null,
       route_total_distance_km: trip.routeSummary?.totalDistanceKm ?? null,
       route_transport_mode: trip.routeSummary?.transportMode ?? null,

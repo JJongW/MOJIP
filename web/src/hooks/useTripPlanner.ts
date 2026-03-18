@@ -51,6 +51,9 @@ interface TripPlannerState {
   // Tip Actions
   updateTip: (tripId: string, index: number, newText: string) => Promise<void>;
 
+  // Traveler Name Actions
+  updateTravelerName: (tripId: string, personIndex: number, name: string) => Promise<void>;
+
   // Stop Actions
   addStop: (tripId: string, dayId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => Promise<void>;
   updateStop: (tripId: string, dayId: string, stopId: string, updates: Partial<Stop>) => Promise<void>;
@@ -373,6 +376,24 @@ export const useTripPlanner = create<TripPlannerState>()(
                 }
               : trip
           ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      updateTravelerName: async (tripId, personIndex, name) => {
+        set((state) => ({
+          trips: state.trips.map((trip) => {
+            if (trip.id !== tripId) return trip;
+            const names = Array.from(
+              { length: trip.travelerCount },
+              (_, i) => trip.travelerNames?.[i] ?? (i === 0 ? "나" : `동행 ${i}`)
+            );
+            names[personIndex] = name;
+            return { ...trip, travelerNames: names, updatedAt: new Date().toISOString() };
+          }),
         }));
         if (isSupabaseConfigured()) {
           const trip = get().trips.find(t => t.id === tripId);
