@@ -16,7 +16,7 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
   const [selectedPerson, setSelectedPerson] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [editingTabIndex, setEditingTabIndex] = useState<number | null>(null);
   const [tabEditValue, setTabEditValue] = useState("");
 
