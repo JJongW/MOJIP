@@ -23,7 +23,10 @@ export default function TripTips({ trip }: TripTipsProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleAdd();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAdd();
+    }
   };
 
   const handleRemove = async (index: number) => {

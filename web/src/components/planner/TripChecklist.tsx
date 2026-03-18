@@ -19,7 +19,10 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleAdd();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAdd();
+    }
   };
 
   const checklist = trip.checklist || [];
