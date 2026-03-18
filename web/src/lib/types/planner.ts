@@ -47,6 +47,7 @@ export interface Stop {
   address?: string;
   placeId?: string; // from Google Places
   durationMinutes: number; // estimated stay
+  startTime?: string;      // HH:mm format e.g. "09:30"
   memo?: string;
   order: number;
   visited: boolean;

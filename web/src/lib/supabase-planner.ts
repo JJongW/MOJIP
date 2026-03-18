@@ -50,6 +50,7 @@ type DbTripStop = {
   address: string | null;
   place_id: string | null;
   duration_minutes: number;
+  start_time: string | null;
   memo: string | null;
   order: number;
   visited: boolean;
@@ -70,6 +71,7 @@ function toStop(row: DbTripStop): Stop {
     address: row.address ?? undefined,
     placeId: row.place_id ?? undefined,
     durationMinutes: row.duration_minutes,
+    startTime: row.start_time ?? undefined,
     memo: row.memo ?? undefined,
     order: row.order,
     visited: row.visited,
@@ -266,6 +268,7 @@ async function _upsertDay(tripId: string, day: DayPlan): Promise<void> {
         address: s.address ?? null,
         place_id: s.placeId ?? null,
         duration_minutes: s.durationMinutes,
+        start_time: s.startTime ?? null,
         memo: s.memo ?? null,
         order: s.order,
         visited: s.visited,
