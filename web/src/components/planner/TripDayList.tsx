@@ -13,7 +13,7 @@ interface TripDayListProps {
 }
 
 export default function TripDayList({ activeTrip }: TripDayListProps) {
-  const { activeDayId, setActiveDay, addDay, removeDay, addStop, reorderStops, moveToSchedule } = useTripPlanner();
+  const { activeDayId, setActiveDay, addDay, removeDay, addStop, reorderStops, moveToSchedule, moveToSaved } = useTripPlanner();
 
   const activeDay = activeTrip.days.find(d => d.id === activeDayId) || activeTrip.days[0];
 
@@ -26,6 +26,10 @@ export default function TripDayList({ activeTrip }: TripDayListProps) {
       // 저장된 장소 → 일정으로 이동
       const dayId = destination.droppableId.replace(/^day-/, '').replace(/-stops$/, '');
       moveToSchedule(activeTrip.id, dayId, draggableId);
+    } else if (source.droppableId.startsWith('day-') && destination.droppableId === 'saved-places') {
+      // 일정 → 가고 싶은 곳으로 이동
+      const dayId = source.droppableId.replace(/^day-/, '').replace(/-stops$/, '');
+      moveToSaved(activeTrip.id, dayId, draggableId);
     } else if (
       source.droppableId === destination.droppableId &&
       source.droppableId.startsWith('day-')
