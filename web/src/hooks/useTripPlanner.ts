@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Trip, Stop, DayPlan, ChecklistItem } from '../lib/types/planner';
+import type { Trip, Stop, DayPlan, ChecklistItem, WishlistItem } from '../lib/types/planner';
 import { MOCK_TRIPS } from '../lib/types/mockData';
 import { v4 as uuidv4 } from 'uuid';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -40,6 +40,11 @@ interface TripPlannerState {
   addChecklistItem: (tripId: string, text: string) => Promise<void>;
   toggleChecklistItem: (tripId: string, itemId: string) => Promise<void>;
   removeChecklistItem: (tripId: string, itemId: string) => Promise<void>;
+
+  // Wishlist Actions
+  addWishlistItem: (tripId: string, text: string) => Promise<void>;
+  toggleWishlistItem: (tripId: string, itemId: string) => Promise<void>;
+  removeWishlistItem: (tripId: string, itemId: string) => Promise<void>;
 
   // Stop Actions
   addStop: (tripId: string, dayId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => Promise<void>;
@@ -248,6 +253,59 @@ export const useTripPlanner = create<TripPlannerState>()(
               ? {
                   ...trip,
                   checklist: (trip.checklist || []).filter((item) => item.id !== itemId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      addWishlistItem: async (tripId, text) => {
+        const newItem: WishlistItem = { id: uuidv4(), text, bought: false };
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? { ...trip, wishlist: [...(trip.wishlist || []), newItem], updatedAt: new Date().toISOString() }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      toggleWishlistItem: async (tripId, itemId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? {
+                  ...trip,
+                  wishlist: (trip.wishlist || []).map((item) =>
+                    item.id === itemId ? { ...item, bought: !item.bought } : item
+                  ),
+                  updatedAt: new Date().toISOString(),
+                }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      removeWishlistItem: async (tripId, itemId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? {
+                  ...trip,
+                  wishlist: (trip.wishlist || []).filter((item) => item.id !== itemId),
                   updatedAt: new Date().toISOString(),
                 }
               : trip

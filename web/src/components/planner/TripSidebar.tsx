@@ -7,6 +7,7 @@ import TripProjectTabs from "./TripProjectTabs";
 import TripDayList from "./TripDayList";
 import TripEditModal from "./TripEditModal";
 import TripChecklist from "./TripChecklist";
+import TripWishlist from "./TripWishlist";
 import TripTips from "./TripTips";
 import { Button } from "@/components/ui/button";
 
@@ -119,6 +120,8 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
           ) : (
             <div className="space-y-6">
               <TripChecklist trip={activeTrip} />
+              <div className="h-[1px] bg-border w-full" />
+              <TripWishlist trip={activeTrip} />
               <div className="h-[1px] bg-border w-full" />
               <TripTips trip={activeTrip} />
             </div>

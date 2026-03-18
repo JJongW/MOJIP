@@ -4,6 +4,12 @@ export interface ChecklistItem {
   checked: boolean;
 }
 
+export interface WishlistItem {
+  id: string;
+  text: string;
+  bought: boolean;
+}
+
 export type Category =
   | 'Attraction'
   | 'Food'
@@ -58,6 +64,7 @@ export interface Trip {
   notes?: string; 
   tips?: string[];
   checklist?: ChecklistItem[];
+  wishlist?: WishlistItem[];
   days: DayPlan[];    // Day-based itinerary
   routeSummary?: RouteSummary;
   createdAt: string; // timestamp
