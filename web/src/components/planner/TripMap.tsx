@@ -109,6 +109,7 @@ export default function TripMap({ activeTrip }: TripMapProps) {
         defaultZoom={13}
         gestureHandling={'greedy'}
         disableDefaultUI={false}
+        onClick={() => setSelectedStop(null)}
       >
         {stops.map((stop) => (
           <AdvancedMarker
