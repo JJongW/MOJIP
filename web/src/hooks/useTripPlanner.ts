@@ -62,6 +62,7 @@ interface TripPlannerState {
   addSavedPlace: (tripId: string, place: Omit<SavedPlace, 'id'>) => Promise<void>;
   removeSavedPlace: (tripId: string, placeId: string) => Promise<void>;
   moveToSchedule: (tripId: string, dayId: string, savedPlaceId: string) => Promise<void>;
+  moveToSaved: (tripId: string, dayId: string, stopId: string) => Promise<void>;
 
   // Stop Actions
   addStop: (tripId: string, dayId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => Promise<void>;
@@ -473,6 +474,52 @@ export const useTripPlanner = create<TripPlannerState>()(
               savedPlaces: (t.savedPlaces || []).filter(p => p.id !== savedPlaceId),
               days: t.days.map(d =>
                 d.id === dayId ? { ...d, stops: [...d.stops, newStop] } : d
+              ),
+              updatedAt: new Date().toISOString(),
+            };
+          }),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const updatedTrip = get().trips.find(t => t.id === tripId);
+          const updatedDay = updatedTrip?.days.find(d => d.id === dayId);
+          if (updatedTrip && updatedDay) {
+            try {
+              await updateTripInSupabase(updatedTrip);
+              await upsertStopsForDay(tripId, updatedDay);
+            } catch (e) { console.error(e); }
+          }
+        }
+      },
+
+      moveToSaved: async (tripId, dayId, stopId) => {
+        const { trips } = get();
+        const trip = trips.find(t => t.id === tripId);
+        const day = trip?.days.find(d => d.id === dayId);
+        const stop = day?.stops.find(s => s.id === stopId);
+        if (!stop) return;
+
+        const newSavedPlace: SavedPlace = {
+          id: uuidv4(),
+          name: stop.name,
+          category: stop.category,
+          lat: stop.lat,
+          lng: stop.lng,
+          address: stop.address,
+          placeId: stop.placeId,
+        };
+
+        set((state) => ({
+          trips: state.trips.map(t => {
+            if (t.id !== tripId) return t;
+            const filteredStops = (t.days.find(d => d.id === dayId)?.stops || [])
+              .filter(s => s.id !== stopId)
+              .map((s, idx) => ({ ...s, order: idx }));
+            return {
+              ...t,
+              savedPlaces: [...(t.savedPlaces || []), newSavedPlace],
+              days: t.days.map(d =>
+                d.id === dayId ? { ...d, stops: filteredStops } : d
               ),
               updatedAt: new Date().toISOString(),
             };
