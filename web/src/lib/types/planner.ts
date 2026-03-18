@@ -1,3 +1,13 @@
+export interface SavedPlace {
+  id: string;
+  name: string;
+  category: Category;
+  lat: number;
+  lng: number;
+  address?: string;
+  placeId?: string;
+}
+
 export interface ChecklistItem {
   id: string;
   text: string;
@@ -68,6 +78,7 @@ export interface Trip {
   checklist?: ChecklistItem[];
   wishlist?: WishlistItem[];
   travelerNames?: string[];
+  savedPlaces?: SavedPlace[];
   days: DayPlan[];    // Day-based itinerary
   routeSummary?: RouteSummary;
   createdAt: string; // timestamp

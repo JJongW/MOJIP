@@ -3,26 +3,33 @@ import { useEffect, useState, useRef } from "react";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
-import { useTripPlanner } from "@/hooks/useTripPlanner";
 import type { Category } from "@/lib/types/planner";
 
+export type PlaceData = {
+  name: string;
+  category: Category;
+  lat: number;
+  lng: number;
+  address: string;
+  placeId: string;
+  durationMinutes: number;
+};
+
 interface SearchPlacesProps {
-  tripId: string;
-  dayId: string;
+  onSelect: (place: PlaceData) => void;
+  placeholder?: string;
 }
 
-export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
+export default function SearchPlaces({ onSelect, placeholder = "장소 검색 (구글 맵) ..." }: SearchPlacesProps) {
   const [inputValue, setInputValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const placesLibrary = useMapsLibrary("places");
   const [autocompleteService, setAutocompleteService] = useState<google.maps.places.AutocompleteService | null>(null);
   const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
-  
+
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
-  
-  const { addStop } = useTripPlanner();
 
   useEffect(() => {
     if (!placesLibrary) return;
@@ -35,7 +42,7 @@ export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
       setPredictions([]);
       return;
     }
-    
+
     setIsSearching(true);
     autocompleteService.getPlacePredictions({ input: inputValue }, (results, status) => {
       setIsSearching(false);
@@ -49,7 +56,7 @@ export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
 
   const handleSelectPlace = (placeId: string) => {
     if (!placesService) return;
-    
+
     placesService.getDetails({
       placeId,
       fields: ['name', 'geometry', 'formatted_address', 'types']
@@ -64,7 +71,7 @@ export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
         if (types.includes('airport')) category = 'Airport';
         if (types.includes('transit_station')) category = 'Transit';
 
-        addStop(tripId, dayId, {
+        onSelect({
           name: result.name || 'Unknown Place',
           category,
           lat: result.geometry.location.lat(),
@@ -73,7 +80,7 @@ export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
           placeId,
           durationMinutes: 60,
         });
-        
+
         setInputValue("");
         setPredictions([]);
         inputRef.current?.blur();
@@ -85,11 +92,11 @@ export default function SearchPlaces({ tripId, dayId }: SearchPlacesProps) {
     <div className="relative w-full z-50">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input 
+        <Input
           ref={inputRef}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="장소 검색 (구글 맵) ..."
+          placeholder={placeholder}
           className="pl-9 bg-background/50 focus:bg-background transition-colors"
         />
         {isSearching && (

@@ -3,7 +3,7 @@
  * supabase-recruitments.ts 패턴을 동일하게 따릅니다.
  */
 import { supabase } from "./supabase";
-import type { Trip, DayPlan, Stop, Category, RouteSummary, ChecklistItem, WishlistItem } from "./types/planner";
+import type { Trip, DayPlan, Stop, Category, RouteSummary, ChecklistItem, WishlistItem, SavedPlace } from "./types/planner";
 
 // ─────────────────────────────────────────────
 // DB Row Types
@@ -23,6 +23,7 @@ type DbTrip = {
   checklist: ChecklistItem[] | null;
   wishlist: WishlistItem[] | null;
   traveler_names: string[] | null;
+  saved_places: SavedPlace[] | null;
   route_total_duration_min: number | null;
   route_total_distance_km: number | null;
   route_transport_mode: string | null;
@@ -108,6 +109,7 @@ function toTrip(row: DbTrip, days: DayPlan[]): Trip {
     checklist: row.checklist ?? undefined,
     wishlist: row.wishlist ?? undefined,
     travelerNames: row.traveler_names ?? undefined,
+    savedPlaces: row.saved_places ?? undefined,
     days,
     routeSummary,
     createdAt: row.created_at,
@@ -188,6 +190,7 @@ export async function saveTripToSupabase(trip: Trip): Promise<void> {
     checklist: trip.checklist ?? null,
     wishlist: trip.wishlist ?? null,
     traveler_names: trip.travelerNames ?? null,
+    saved_places: trip.savedPlaces ?? null,
     route_total_duration_min: trip.routeSummary?.totalDurationMin ?? null,
     route_total_distance_km: trip.routeSummary?.totalDistanceKm ?? null,
     route_transport_mode: trip.routeSummary?.transportMode ?? null,
@@ -224,6 +227,7 @@ export async function updateTripInSupabase(trip: Trip): Promise<void> {
       checklist: trip.checklist ?? null,
       wishlist: trip.wishlist ?? null,
       traveler_names: trip.travelerNames ?? null,
+      saved_places: trip.savedPlaces ?? null,
       route_total_duration_min: trip.routeSummary?.totalDurationMin ?? null,
       route_total_distance_km: trip.routeSummary?.totalDistanceKm ?? null,
       route_transport_mode: trip.routeSummary?.transportMode ?? null,

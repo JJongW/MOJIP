@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Trip, Stop, DayPlan, ChecklistItem, WishlistItem } from '../lib/types/planner';
+import type { Trip, Stop, DayPlan, ChecklistItem, WishlistItem, SavedPlace } from '../lib/types/planner';
 import { MOCK_TRIPS } from '../lib/types/mockData';
 import { v4 as uuidv4 } from 'uuid';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -53,6 +53,11 @@ interface TripPlannerState {
 
   // Traveler Name Actions
   updateTravelerName: (tripId: string, personIndex: number, name: string) => Promise<void>;
+
+  // Saved Places Actions
+  addSavedPlace: (tripId: string, place: Omit<SavedPlace, 'id'>) => Promise<void>;
+  removeSavedPlace: (tripId: string, placeId: string) => Promise<void>;
+  moveToSchedule: (tripId: string, dayId: string, savedPlaceId: string) => Promise<void>;
 
   // Stop Actions
   addStop: (tripId: string, dayId: string, stop: Omit<Stop, 'id' | 'order' | 'visited'>) => Promise<void>;
@@ -398,6 +403,81 @@ export const useTripPlanner = create<TripPlannerState>()(
         if (isSupabaseConfigured()) {
           const trip = get().trips.find(t => t.id === tripId);
           if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      addSavedPlace: async (tripId, place) => {
+        const newPlace: SavedPlace = { ...place, id: uuidv4() };
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? { ...trip, savedPlaces: [...(trip.savedPlaces || []), newPlace], updatedAt: new Date().toISOString() }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      removeSavedPlace: async (tripId, placeId) => {
+        set((state) => ({
+          trips: state.trips.map((trip) =>
+            trip.id === tripId
+              ? { ...trip, savedPlaces: (trip.savedPlaces || []).filter(p => p.id !== placeId), updatedAt: new Date().toISOString() }
+              : trip
+          ),
+        }));
+        if (isSupabaseConfigured()) {
+          const trip = get().trips.find(t => t.id === tripId);
+          if (trip) { try { await updateTripInSupabase(trip); } catch (e) { console.error(e); } }
+        }
+      },
+
+      moveToSchedule: async (tripId, dayId, savedPlaceId) => {
+        const { trips } = get();
+        const trip = trips.find(t => t.id === tripId);
+        const savedPlace = trip?.savedPlaces?.find(p => p.id === savedPlaceId);
+        const day = trip?.days.find(d => d.id === dayId);
+        if (!savedPlace || !day) return;
+
+        const newStop: Stop = {
+          id: uuidv4(),
+          name: savedPlace.name,
+          category: savedPlace.category,
+          lat: savedPlace.lat,
+          lng: savedPlace.lng,
+          address: savedPlace.address,
+          placeId: savedPlace.placeId,
+          durationMinutes: 60,
+          order: day.stops.length,
+          visited: false,
+        };
+
+        set((state) => ({
+          trips: state.trips.map(t => {
+            if (t.id !== tripId) return t;
+            return {
+              ...t,
+              savedPlaces: (t.savedPlaces || []).filter(p => p.id !== savedPlaceId),
+              days: t.days.map(d =>
+                d.id === dayId ? { ...d, stops: [...d.stops, newStop] } : d
+              ),
+              updatedAt: new Date().toISOString(),
+            };
+          }),
+        }));
+
+        if (isSupabaseConfigured()) {
+          const updatedTrip = get().trips.find(t => t.id === tripId);
+          const updatedDay = updatedTrip?.days.find(d => d.id === dayId);
+          if (updatedTrip && updatedDay) {
+            try {
+              await updateTripInSupabase(updatedTrip);
+              await upsertStopsForDay(tripId, updatedDay);
+            } catch (e) { console.error(e); }
+          }
         }
       },
 
