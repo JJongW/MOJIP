@@ -16,7 +16,7 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
-    <div className={`flex flex-col h-full bg-background/80 backdrop-blur-md border-r border-border/50 w-[450px] min-w-[450px] max-w-[450px] overflow-hidden ${className}`}>
+    <div className={`flex flex-col h-full bg-background/80 backdrop-blur-md border-r border-border/50 overflow-hidden ${className}`}>
       
       {/* 1. Trip Project Tabs (Sticky Top) */}
       <div className="shrink-0 p-4 border-b border-white/5">
