@@ -25,7 +25,7 @@ export default function TripTips({ trip }: TripTipsProps) {
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleAdd();
     }
@@ -49,7 +49,7 @@ export default function TripTips({ trip }: TripTipsProps) {
   const cancelEdit = () => setEditingIndex(null);
 
   const handleEditKeyDown = (e: React.KeyboardEvent, index: number) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       saveEdit(index);
     }
@@ -78,13 +78,14 @@ export default function TripTips({ trip }: TripTipsProps) {
             </span>
 
             {editingIndex === index ? (
-              <input
+              <textarea
                 autoFocus
+                rows={1}
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={(e) => handleEditKeyDown(e, index)}
                 onBlur={() => saveEdit(index)}
-                className="flex-1 text-xs bg-muted/40 border border-primary/30 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="flex-1 text-xs bg-muted/40 border border-primary/30 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               />
             ) : (
               <div className="flex-1 min-w-0 pt-0.5">
@@ -98,7 +99,7 @@ export default function TripTips({ trip }: TripTipsProps) {
                     {tip}
                   </a>
                 ) : (
-                  <span className="text-foreground/80 break-words text-xs">{tip}</span>
+                  <span className="text-foreground/80 break-words text-xs whitespace-pre-wrap">{tip}</span>
                 )}
               </div>
             )}
@@ -128,14 +129,14 @@ export default function TripTips({ trip }: TripTipsProps) {
         ))}
       </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
+      <div className="flex gap-2 items-end">
+        <textarea
+          rows={1}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder="팁 또는 https://... 추가"
-          className="flex-1 text-xs bg-muted/30 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-muted-foreground/50"
+          className="flex-1 text-xs bg-muted/30 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-muted-foreground/50 resize-none"
         />
         <button
           onClick={handleAdd}

@@ -28,7 +28,7 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleAdd();
     }
@@ -48,7 +48,7 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
   const cancelEdit = () => setEditingId(null);
 
   const handleEditKeyDown = (e: React.KeyboardEvent, id: string) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       saveEdit(id);
     }
@@ -91,10 +91,10 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
 
       <div className="space-y-1">
         {filtered.map((item) => (
-          <div key={item.id} className="flex items-center gap-2 group py-1">
+          <div key={item.id} className="flex items-start gap-2 group py-1">
             <button
               onClick={() => toggleChecklistItem(trip.id, item.id)}
-              className={`w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+              className={`w-[18px] h-[18px] mt-0.5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
                 item.checked
                   ? "bg-primary border-primary text-white"
                   : "border-border hover:border-primary/60"
@@ -104,17 +104,18 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
             </button>
 
             {editingId === item.id ? (
-              <input
+              <textarea
                 autoFocus
+                rows={1}
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={(e) => handleEditKeyDown(e, item.id)}
                 onBlur={() => saveEdit(item.id)}
-                className="flex-1 text-xs bg-muted/40 border border-primary/30 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="flex-1 text-xs bg-muted/40 border border-primary/30 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               />
             ) : (
               <span
-                className={`flex-1 text-sm transition-all ${
+                className={`flex-1 text-sm transition-all whitespace-pre-wrap ${
                   item.checked ? "line-through opacity-50 text-muted-foreground" : "text-foreground"
                 }`}
               >
@@ -147,14 +148,14 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
         ))}
       </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
+      <div className="flex gap-2 items-end">
+        <textarea
+          rows={1}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder={travelerCount > 1 ? `${getPersonLabel(selectedPerson)} 준비물 추가...` : "준비물 추가..."}
-          className="flex-1 text-xs bg-muted/30 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-muted-foreground/50"
+          className="flex-1 text-xs bg-muted/30 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-muted-foreground/50 resize-none"
         />
         <button
           onClick={handleAdd}
