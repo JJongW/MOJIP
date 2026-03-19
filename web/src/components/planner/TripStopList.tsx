@@ -77,7 +77,7 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
     setLegs(legs.map((leg, i) => i === legIdx ? { ...leg, name } : leg));
   };
 
-  const handleNameBlur = (legIdx: number) => {
+  const handleNameBlur = () => {
     saveLegs(legsRef.current);
   };
 
@@ -198,7 +198,7 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
                   }
                   value={leg.name ?? ''}
                   onChange={(e) => handleNameChange(legIdx, e.target.value)}
-                  onBlur={() => handleNameBlur(legIdx)}
+                  onBlur={handleNameBlur}
                 />
               )}
             </div>
