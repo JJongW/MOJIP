@@ -132,9 +132,9 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
 
       <div className="space-y-1">
         {filtered.map((item) => (
-          <div key={item.id} className="flex items-start gap-2 group py-1">
+          <div key={item.id} className="flex items-start gap-2 group py-1 cursor-pointer" onClick={() => { if (editingId !== item.id) toggleChecklistItem(trip.id, item.id); }}>
             <button
-              onClick={() => toggleChecklistItem(trip.id, item.id)}
+              onClick={(e) => e.stopPropagation()}
               className={`w-[18px] h-[18px] mt-0.5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
                 item.checked
                   ? "bg-primary border-primary text-white"
@@ -167,19 +167,19 @@ export default function TripChecklist({ trip }: TripChecklistProps) {
             <div className={`flex gap-0.5 ${editingId === item.id ? "" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
               {editingId === item.id ? (
                 <>
-                  <button onClick={() => saveEdit(item.id)} className="p-1 hover:bg-primary/10 hover:text-primary rounded-md transition-colors text-muted-foreground">
+                  <button onClick={(e) => { e.stopPropagation(); saveEdit(item.id); }} className="p-1 hover:bg-primary/10 hover:text-primary rounded-md transition-colors text-muted-foreground">
                     <Check className="w-3 h-3" />
                   </button>
-                  <button onClick={cancelEdit} className="p-1 hover:bg-muted rounded-md transition-colors text-muted-foreground">
+                  <button onClick={(e) => { e.stopPropagation(); cancelEdit(); }} className="p-1 hover:bg-muted rounded-md transition-colors text-muted-foreground">
                     <X className="w-3 h-3" />
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => startEdit(item.id, item.text)} className="p-1 hover:bg-muted hover:text-foreground rounded-md transition-colors text-muted-foreground">
+                  <button onClick={(e) => { e.stopPropagation(); startEdit(item.id, item.text); }} className="p-1 hover:bg-muted hover:text-foreground rounded-md transition-colors text-muted-foreground">
                     <Pencil className="w-3 h-3" />
                   </button>
-                  <button onClick={() => removeChecklistItem(trip.id, item.id)} className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors text-muted-foreground">
+                  <button onClick={(e) => { e.stopPropagation(); removeChecklistItem(trip.id, item.id); }} className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors text-muted-foreground">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </>

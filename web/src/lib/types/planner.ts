@@ -38,6 +38,9 @@ export interface RouteSummary {
   transportMode: 'driving' | 'transit' | 'walking' | 'bicycling';
 }
 
+import type { TransportMode } from '../transportMode';
+export type { TransportMode };
+
 export interface Stop {
   id: string; // uuid
   name: string;
@@ -51,11 +54,14 @@ export interface Stop {
   memo?: string;
   order: number;
   visited: boolean;
+  transportMode?: TransportMode; // mode from previous stop to this stop
+  transportName?: string; // route name or flight number
 }
 
 export interface LegInfo {
   distance: string;
   duration: string;
+  mode: TransportMode;
 }
 
 export interface DayPlan {

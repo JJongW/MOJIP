@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Trip, Stop, DayPlan, ChecklistItem, WishlistItem, SavedPlace } from '../lib/types/planner';
+import type { Trip, Stop, DayPlan, ChecklistItem, WishlistItem, SavedPlace, LegInfo } from '../lib/types/planner';
 import { MOCK_TRIPS } from '../lib/types/mockData';
 import { v4 as uuidv4 } from 'uuid';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -18,7 +18,7 @@ interface TripPlannerState {
   trips: Trip[];
   activeTripId: string | null;
   activeDayId: string | null;
-  activeDayLegs: { distance: string; duration: string }[];
+  activeDayLegs: LegInfo[];
   focusedStopId: string | null;
   focusedSavedPlaceId: string | null;
   isLoading: boolean;
@@ -26,7 +26,7 @@ interface TripPlannerState {
   // Basic Actions
   setActiveTrip: (id: string | null) => void;
   setActiveDay: (id: string | null) => void;
-  setLegs: (legs: { distance: string; duration: string }[]) => void;
+  setLegs: (legs: LegInfo[]) => void;
   setFocusedStop: (id: string | null) => void;
   setFocusedSavedPlace: (id: string | null) => void;
   fetchTrips: () => Promise<void>;

@@ -1,5 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
-import type { Stop, SavedPlace, Trip } from '@/lib/types/planner';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import type { Stop, SavedPlace, Trip, LegInfo } from '@/lib/types/planner';
+import { TRANSPORT_COLORS, googleTravelMode } from '@/lib/transportMode';
+import type { TransportMode } from '@/lib/transportMode';
 import {
   Map,
   useMap,
@@ -18,13 +20,14 @@ export default function TripMap({ activeTrip }: TripMapProps) {
   const map = useMap('mojip-trip-map-styled');
   const routesLibrary = useMapsLibrary('routes');
   const { activeDayId, setLegs, focusedStopId, setFocusedStop, focusedSavedPlaceId, setFocusedSavedPlace } = useTripPlanner();
-  
-  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+
+  const legRenderersRef = useRef<google.maps.DirectionsRenderer[]>([]);
+  const airplanePolylinesRef = useRef<google.maps.Polyline[]>([]);
+  const directionsServiceRef = useRef<google.maps.DirectionsService | null>(null);
+
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
   const [selectedSavedPlace, setSelectedSavedPlace] = useState<SavedPlace | null>(null);
 
-  // Get stops for the active day
   const activeDay = useMemo(() => {
     return activeTrip.days.find(d => d.id === activeDayId) || activeTrip.days[0];
   }, [activeTrip.days, activeDayId]);
@@ -32,56 +35,97 @@ export default function TripMap({ activeTrip }: TripMapProps) {
   const stops = activeDay?.stops || [];
   const savedPlaces = activeTrip.savedPlaces || [];
 
-  // 1. Initialize Directions components
+  // 1. Initialize DirectionsService
   useEffect(() => {
-    if (!routesLibrary || !map) return;
-    setDirectionsService(new routesLibrary.DirectionsService());
-    const renderer = new routesLibrary.DirectionsRenderer({
-      map,
-      suppressMarkers: true,
-      polylineOptions: {
-        strokeColor: '#3B82F6', // primary blue
-        strokeWeight: 5,
-        strokeOpacity: 0.8
-      }
-    });
-    setDirectionsRenderer(renderer);
+    if (!routesLibrary) return;
+    directionsServiceRef.current = new routesLibrary.DirectionsService();
+  }, [routesLibrary]);
 
-    return () => renderer.setMap(null);
-  }, [routesLibrary, map]);
-
-  // 2. Fetch directions for the active day
+  // 2. Per-leg routing
   useEffect(() => {
-    if (!directionsService || !directionsRenderer || stops.length < 2) {
-      if (directionsRenderer) directionsRenderer.setDirections({ routes: [] } as any);
-      return;
-    }
+    if (!map || !routesLibrary) return;
 
-    const origin = { lat: stops[0].lat, lng: stops[0].lng };
-    const destination = { lat: stops[stops.length - 1].lat, lng: stops[stops.length - 1].lng };
-    const waypoints = stops.slice(1, -1).map(stop => ({
-      location: { lat: stop.lat, lng: stop.lng },
-      stopover: true
-    }));
+    // Cleanup previous renderers/polylines
+    legRenderersRef.current.forEach(r => r.setMap(null));
+    airplanePolylinesRef.current.forEach(p => p.setMap(null));
+    legRenderersRef.current = [];
+    airplanePolylinesRef.current = [];
+    setLegs([]);
 
-    directionsService.route({
-      origin,
-      destination,
-      waypoints,
-      travelMode: google.maps.TravelMode.DRIVING // Defaulting to driving for now
-    }, (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK && result) {
-        directionsRenderer.setDirections(result);
-        
-        // Extract distance and duration for each leg
-        const legs = result.routes[0].legs.map(leg => ({
-          distance: leg.distance?.text || '',
-          duration: leg.duration?.text || ''
-        }));
-        setLegs(legs);
+    if (stops.length < 2 || !directionsServiceRef.current) return;
+
+    let cancelled = false;
+    const legsAccumulator: LegInfo[] = new Array(stops.length - 1).fill(null);
+    let resolvedCount = 0;
+
+    const checkDone = () => {
+      resolvedCount++;
+      if (resolvedCount === stops.length - 1 && !cancelled) {
+        setLegs(legsAccumulator.filter(Boolean) as LegInfo[]);
       }
+    };
+
+    stops.slice(0, -1).forEach((fromStop, i) => {
+      const toStop = stops[i + 1];
+      const mode: TransportMode = toStop.transportMode ?? 'driving';
+      const color = TRANSPORT_COLORS[mode];
+      const origin = { lat: fromStop.lat, lng: fromStop.lng };
+      const destination = { lat: toStop.lat, lng: toStop.lng };
+
+      if (mode === 'airplane') {
+        const polyline = new google.maps.Polyline({
+          path: [origin, destination],
+          strokeColor: color,
+          strokeWeight: 3,
+          strokeOpacity: 0,
+          icons: [{
+            icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
+            offset: '0',
+            repeat: '15px'
+          }],
+          map,
+        });
+        airplanePolylinesRef.current[i] = polyline;
+        legsAccumulator[i] = { distance: '–', duration: '–', mode };
+        checkDone();
+        return;
+      }
+
+      const renderer = new routesLibrary.DirectionsRenderer({
+        map,
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: color, strokeWeight: 5, strokeOpacity: 0.8 }
+      });
+      legRenderersRef.current[i] = renderer;
+
+      directionsServiceRef.current!.route({
+        origin,
+        destination,
+        travelMode: googleTravelMode(mode),
+        ...(mode === 'transit' ? { transitOptions: { departureTime: new Date() } } : {}),
+      }, (result, status) => {
+        if (cancelled) return;
+        if (status === google.maps.DirectionsStatus.OK && result) {
+          renderer.setDirections(result);
+          const leg = result.routes[0].legs[0];
+          legsAccumulator[i] = {
+            distance: leg.distance?.text || '–',
+            duration: leg.duration?.text || '–',
+            mode,
+          };
+        } else {
+          legsAccumulator[i] = { distance: '–', duration: '–', mode };
+        }
+        checkDone();
+      });
     });
-  }, [directionsService, directionsRenderer, stops]);
+
+    return () => {
+      cancelled = true;
+      legRenderersRef.current.forEach(r => r.setMap(null));
+      airplanePolylinesRef.current.forEach(p => p.setMap(null));
+    };
+  }, [map, routesLibrary, stops]);
 
   // 3. Fit bounds to stops
   useEffect(() => {
@@ -132,9 +176,9 @@ export default function TripMap({ activeTrip }: TripMapProps) {
             position={{ lat: stop.lat, lng: stop.lng }}
             onClick={() => setSelectedStop(stop)}
           >
-            <Pin 
-              background={stop.visited ? '#94A3B8' : '#3B82F6'} 
-              borderColor={stop.visited ? '#64748B' : '#1D4ED8'} 
+            <Pin
+              background={stop.visited ? '#94A3B8' : '#3B82F6'}
+              borderColor={stop.visited ? '#64748B' : '#1D4ED8'}
               glyphColor={'white'}
               scale={1.2}
             >
