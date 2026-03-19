@@ -76,7 +76,7 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
   const handleModeChange = (legIdx: number, newMode: TransportMode) => {
     const updated = legs.map((leg, i) => {
       if (i !== legIdx) return leg;
-      const clearName = !NAME_INPUT_MODES.includes(newMode);
+      const clearName = !(newMode in MODE_LABEL);
       return { mode: newMode, name: clearName ? undefined : leg.name };
     });
     saveLegs(updated);
