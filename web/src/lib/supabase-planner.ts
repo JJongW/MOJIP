@@ -4,6 +4,7 @@
  */
 import { supabase } from "./supabase";
 import type { Trip, DayPlan, Stop, Category, RouteSummary, ChecklistItem, WishlistItem, SavedPlace } from "./types/planner";
+import type { TransportMode } from "./transportMode";
 
 // ─────────────────────────────────────────────
 // DB Row Types
@@ -54,6 +55,8 @@ type DbTripStop = {
   memo: string | null;
   order: number;
   visited: boolean;
+  transport_mode: string | null;
+  transport_name: string | null;
   created_at: string;
 };
 
@@ -75,6 +78,8 @@ function toStop(row: DbTripStop): Stop {
     memo: row.memo ?? undefined,
     order: row.order,
     visited: row.visited,
+    transportMode: (row.transport_mode as TransportMode) ?? undefined,
+    transportName: row.transport_name ?? undefined,
   };
 }
 
@@ -272,6 +277,8 @@ async function _upsertDay(tripId: string, day: DayPlan): Promise<void> {
         memo: s.memo ?? null,
         order: s.order,
         visited: s.visited,
+        transport_mode: s.transportMode ?? null,
+        transport_name: s.transportName ?? null,
       }))
     );
     if (error) throw error;
