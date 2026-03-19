@@ -3,7 +3,7 @@
  * supabase-recruitments.ts 패턴을 동일하게 따릅니다.
  */
 import { supabase } from "./supabase";
-import type { Trip, DayPlan, Stop, Category, RouteSummary, ChecklistItem, WishlistItem, SavedPlace } from "./types/planner";
+import type { Trip, DayPlan, Stop, Category, RouteSummary, ChecklistItem, WishlistItem, SavedPlace, TransportLeg } from "./types/planner";
 import type { TransportMode } from "./transportMode";
 
 // ─────────────────────────────────────────────
@@ -57,6 +57,7 @@ type DbTripStop = {
   visited: boolean;
   transport_mode: string | null;
   transport_name: string | null;
+  transport_legs: TransportLeg[] | null;
   created_at: string;
 };
 
@@ -80,6 +81,7 @@ function toStop(row: DbTripStop): Stop {
     visited: row.visited,
     transportMode: (row.transport_mode as TransportMode) ?? undefined,
     transportName: row.transport_name ?? undefined,
+    transportLegs: row.transport_legs ?? undefined,
   };
 }
 
@@ -279,6 +281,7 @@ async function _upsertDay(tripId: string, day: DayPlan): Promise<void> {
         visited: s.visited,
         transport_mode: s.transportMode ?? null,
         transport_name: s.transportName ?? null,
+        transport_legs: s.transportLegs ?? null,
       }))
     );
     if (error) throw error;
