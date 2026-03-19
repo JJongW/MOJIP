@@ -22,7 +22,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 export default function TripSavedPlaces({ trip }: TripSavedPlacesProps) {
   const { addSavedPlace, removeSavedPlace, setFocusedSavedPlace } = useTripPlanner();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const savedPlaces = trip.savedPlaces || [];
 
