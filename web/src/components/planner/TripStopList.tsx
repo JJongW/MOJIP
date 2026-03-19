@@ -25,7 +25,16 @@ const MODE_ICONS: Record<TransportMode, React.ElementType> = {
   airplane: Plane,
 };
 
-const NAME_INPUT_MODES: TransportMode[] = ['transit', 'subway', 'airplane'];
+const MODE_LABEL: Partial<Record<TransportMode, string>> = {
+  transit: '노선명',
+  subway: '호선',
+  airplane: '항공편 번호',
+};
+const MODE_PLACEHOLDER: Partial<Record<TransportMode, string>> = {
+  transit: '예: 102번 버스',
+  subway: '예: 2호선, JR山手線',
+  airplane: '예: KE123, OZ201',
+};
 
 function getLegsFromStop(stop: Stop): TransportLeg[] {
   if (stop.transportLegs && stop.transportLegs.length > 0) return stop.transportLegs;
@@ -148,14 +157,17 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
       <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-1 pb-1">
         {/* Each leg row */}
         {legs.map((leg, legIdx) => {
-          const showName = NAME_INPUT_MODES.includes(leg.mode);
+          const Icon = MODE_ICONS[leg.mode];
+          const label = MODE_LABEL[leg.mode];
+          const placeholder = MODE_PLACEHOLDER[leg.mode];
+          const color = TRANSPORT_COLORS[leg.mode];
           return (
-            <div key={legIdx} className="flex flex-col gap-1">
+            <div key={legIdx} className="flex flex-col gap-1.5">
+              {/* Mode icon buttons */}
               <div className="flex items-center gap-1">
-                {/* Mode icon buttons */}
                 <div className="flex gap-0.5 flex-wrap">
                   {MODES.map((m) => {
-                    const Icon = MODE_ICONS[m];
+                    const MIcon = MODE_ICONS[m];
                     const isActive = leg.mode === m;
                     return (
                       <button
@@ -168,7 +180,7 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
                         }}
                         title={m}
                       >
-                        <Icon
+                        <MIcon
                           className="w-3 h-3"
                           style={{ color: isActive ? 'white' : 'hsl(var(--muted-foreground))' }}
                         />
@@ -176,7 +188,6 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
                     );
                   })}
                 </div>
-                {/* Remove leg button (only if more than 1 leg) */}
                 {legs.length > 1 && (
                   <button
                     onClick={() => removeLeg(legIdx)}
@@ -186,20 +197,26 @@ function LegConnector({ tripId, dayId, fromStop, toStop, legInfo }: LegConnector
                   </button>
                 )}
               </div>
-              {/* Route name input */}
-              {showName && (
-                <input
-                  className="text-[11px] border border-border/50 rounded-lg px-2 py-1 bg-background outline-none focus:ring-1 w-full"
-                  style={{ '--tw-ring-color': TRANSPORT_COLORS[leg.mode] } as React.CSSProperties}
-                  placeholder={
-                    leg.mode === 'airplane'
-                      ? '항공편 번호 (예: KE123)'
-                      : '노선명 (예: 지하철 2호선)'
-                  }
-                  value={leg.name ?? ''}
-                  onChange={(e) => handleNameChange(legIdx, e.target.value)}
-                  onBlur={handleNameBlur}
-                />
+
+              {/* Mode-specific input */}
+              {label && (
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1">
+                    <Icon className="w-3 h-3" style={{ color }} />
+                    <span className="text-[10px] font-medium" style={{ color }}>{label}</span>
+                  </div>
+                  <input
+                    className="text-[11px] border rounded-lg px-2 py-1 bg-background outline-none focus:ring-1 w-full"
+                    style={{
+                      borderColor: `${color}40`,
+                      '--tw-ring-color': color,
+                    } as React.CSSProperties}
+                    placeholder={placeholder}
+                    value={leg.name ?? ''}
+                    onChange={(e) => handleNameChange(legIdx, e.target.value)}
+                    onBlur={handleNameBlur}
+                  />
+                </div>
               )}
             </div>
           );
