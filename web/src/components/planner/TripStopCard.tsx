@@ -34,7 +34,10 @@ export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps)
 
   return (
     <div
-      onClick={() => setFocusedStop(stop.id)}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('button, input, textarea, a')) return;
+        setFocusedStop(stop.id);
+      }}
       className={`
         relative border rounded-2xl shadow-sm bg-card flex group transition-all duration-300 w-full min-w-0 overflow-hidden cursor-pointer
         ${isMobile ? 'p-3 gap-3' : 'p-4 gap-4'}

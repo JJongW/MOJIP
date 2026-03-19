@@ -41,6 +41,11 @@ export interface RouteSummary {
 import type { TransportMode } from '../transportMode';
 export type { TransportMode };
 
+export interface TransportLeg {
+  mode: TransportMode;
+  name?: string; // 노선명, 편명 등
+}
+
 export interface Stop {
   id: string; // uuid
   name: string;
@@ -54,8 +59,9 @@ export interface Stop {
   memo?: string;
   order: number;
   visited: boolean;
-  transportMode?: TransportMode; // mode from previous stop to this stop
-  transportName?: string; // route name or flight number
+  transportLegs?: TransportLeg[]; // 다구간 이동수단 (우선 사용)
+  transportMode?: TransportMode;  // 하위 호환용 (transportLegs 없을 때 폴백)
+  transportName?: string;         // 하위 호환용
 }
 
 export interface LegInfo {
