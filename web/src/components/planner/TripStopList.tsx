@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { DayPlan, Stop } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import TripStopCard from "./TripStopCard";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Car, Bus, PersonStanding, Bike, Plane } from "lucide-react";
@@ -31,6 +32,7 @@ interface LegConnectorProps {
 
 function LegConnector({ tripId, dayId, toStop, legInfo }: LegConnectorProps) {
   const { updateStop } = useTripPlanner();
+  const isMobile = useIsMobile();
   const mode: TransportMode = toStop.transportMode ?? 'driving';
   const [nameValue, setNameValue] = useState(toStop.transportName ?? '');
 
@@ -65,7 +67,7 @@ function LegConnector({ tripId, dayId, toStop, legInfo }: LegConnectorProps) {
               <button
                 key={m}
                 onClick={() => handleModeChange(m)}
-                className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                className={`${isMobile ? 'w-7 h-7' : 'w-6 h-6'} rounded-full flex items-center justify-center transition-all hover:scale-110`}
                 style={{
                   backgroundColor: isActive ? TRANSPORT_COLORS[m] : 'transparent',
                   border: isActive ? 'none' : '1px solid hsl(var(--border))',
@@ -86,7 +88,7 @@ function LegConnector({ tripId, dayId, toStop, legInfo }: LegConnectorProps) {
       {/* Info column */}
       <div className="flex flex-col gap-1.5 min-w-0 flex-1 pt-1">
         {/* Distance / duration pill */}
-        <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground/80 bg-muted/30 py-1 px-2.5 rounded-full border border-border/40 w-fit">
+        <div className={`flex items-center gap-2 ${isMobile ? 'text-xs' : 'text-[11px]'} font-bold text-muted-foreground/80 bg-muted/30 py-1 px-2.5 rounded-full border border-border/40 w-fit`}>
           <span className="text-foreground">{legInfo?.distance ?? '…'}</span>
           <div className="w-1 h-1 bg-muted-foreground/30 rounded-full" />
           <span style={{ color: TRANSPORT_COLORS[mode] }}>{legInfo?.duration ?? '…'}</span>

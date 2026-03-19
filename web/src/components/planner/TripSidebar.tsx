@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Trip } from "@/lib/types/planner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { MapPin, Calendar, Users, Clock, Navigation, Edit2, ChevronLeft } from "lucide-react";
 import TripProjectTabs from "./TripProjectTabs";
@@ -22,12 +23,13 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('schedule');
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   return (
     <div className={`flex flex-col h-full bg-background/80 backdrop-blur-md border-r border-border/50 overflow-hidden ${className}`}>
 
       {/* 1. Trip Project Tabs (Sticky Top) with Back Button */}
-      <div className="shrink-0 p-4 border-b border-white/5">
+      <div className={`shrink-0 ${isMobile ? 'p-3' : 'p-4'} border-b border-white/5`}>
         <div className="flex items-center gap-2 mb-3">
           <button
             onClick={() => navigate('/')}
@@ -42,13 +44,13 @@ export default function TripSidebar({ activeTrip, className }: TripSidebarProps)
 
       {/* 2. Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
-        <div className="p-4 pb-20 space-y-4">
+        <div className={`${isMobile ? 'p-3 pb-24' : 'p-4 pb-20'} space-y-4`}>
 
           {/* Trip Summary Header */}
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight truncate">{activeTrip.title}</h1>
+                <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold tracking-tight truncate`}>{activeTrip.title}</h1>
                 <p className="text-muted-foreground mt-1 text-sm line-clamp-2">{activeTrip.summary}</p>
               </div>
               <Button

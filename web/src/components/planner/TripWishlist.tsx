@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Trip } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus, Trash2, ShoppingBag, Pencil, Check, X, ChevronDown } from "lucide-react";
 
 interface TripWishlistProps {
@@ -12,6 +13,7 @@ const getPersonLabel = (index: number, names?: string[]) =>
 
 export default function TripWishlist({ trip }: TripWishlistProps) {
   const { addWishlistItem, toggleWishlistItem, updateWishlistItem, removeWishlistItem, updateTravelerName } = useTripPlanner();
+  const isMobile = useIsMobile();
   const [inputValue, setInputValue] = useState("");
   const [selectedPerson, setSelectedPerson] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -108,7 +110,7 @@ export default function TripWishlist({ trip }: TripWishlistProps) {
               ) : (
                 <button
                   onClick={() => setSelectedPerson(i)}
-                  className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-all group/tab ${
+                  className={`flex items-center gap-1 text-xs rounded-full transition-all group/tab ${isMobile ? 'px-4 py-2' : 'px-3 py-1.5'} ${
                     selectedPerson === i
                       ? "bg-pink-400 text-white"
                       : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -168,7 +170,7 @@ export default function TripWishlist({ trip }: TripWishlistProps) {
               </span>
             )}
 
-            <div className={`flex gap-0.5 ${editingId === item.id ? "" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+            <div className={`flex gap-0.5 transition-opacity ${editingId === item.id ? "" : isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
               {editingId === item.id ? (
                 <>
                   <button onClick={(e) => { e.stopPropagation(); saveEdit(item.id); }} className="p-1 hover:bg-pink-400/10 hover:text-pink-400 rounded-md transition-colors text-muted-foreground">
