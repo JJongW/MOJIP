@@ -249,42 +249,56 @@ export async function updateTripInSupabase(trip: Trip): Promise<void> {
 // DAY CRUD
 // ─────────────────────────────────────────────
 
+const STOP_ROW = (s: Stop, dayId: string, tripId: string) => ({
+  id: s.id,
+  day_id: dayId,
+  trip_id: tripId,
+  name: s.name,
+  category: s.category,
+  lat: s.lat,
+  lng: s.lng,
+  address: s.address ?? null,
+  place_id: s.placeId ?? null,
+  duration_minutes: s.durationMinutes,
+  start_time: s.startTime ?? null,
+  memo: s.memo ?? null,
+  order: s.order,
+  visited: s.visited,
+  transport_mode: s.transportMode ?? null,
+  transport_name: s.transportName ?? null,
+  transport_legs: s.transportLegs ?? null,
+});
+
 async function _upsertDay(tripId: string, day: DayPlan): Promise<void> {
   if (!supabase) return;
 
-  await supabase.from("trip_days").upsert({
+  // 1. Upsert the day row
+  const { error: dayErr } = await supabase.from("trip_days").upsert({
     id: day.id,
     trip_id: tripId,
     day_number: day.dayNumber,
     date: day.date ?? null,
   });
+  if (dayErr) throw dayErr;
 
-  // Clear existing stops for this day, then re-insert
-  await supabase.from("trip_stops").delete().eq("day_id", day.id);
-
+  // 2. Upsert each stop individually — safe: partial failure doesn't wipe other stops
   if (day.stops.length > 0) {
-    const { error } = await supabase.from("trip_stops").insert(
-      day.stops.map((s) => ({
-        id: s.id,
-        day_id: day.id,
-        trip_id: tripId,
-        name: s.name,
-        category: s.category,
-        lat: s.lat,
-        lng: s.lng,
-        address: s.address ?? null,
-        place_id: s.placeId ?? null,
-        duration_minutes: s.durationMinutes,
-        start_time: s.startTime ?? null,
-        memo: s.memo ?? null,
-        order: s.order,
-        visited: s.visited,
-        transport_mode: s.transportMode ?? null,
-        transport_name: s.transportName ?? null,
-        transport_legs: s.transportLegs ?? null,
-      }))
-    );
-    if (error) throw error;
+    const { error: upsertErr } = await supabase
+      .from("trip_stops")
+      .upsert(day.stops.map((s) => STOP_ROW(s, day.id, tripId)), { onConflict: 'id' });
+    if (upsertErr) throw upsertErr;
+  }
+
+  // 3. Delete stops that no longer belong to this day (removed stops)
+  const currentIds = day.stops.map((s) => s.id);
+  if (currentIds.length > 0) {
+    await supabase
+      .from("trip_stops")
+      .delete()
+      .eq("day_id", day.id)
+      .not("id", "in", `(${currentIds.join(",")})`);
+  } else {
+    await supabase.from("trip_stops").delete().eq("day_id", day.id);
   }
 }
 
