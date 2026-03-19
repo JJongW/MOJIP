@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Stop } from "@/lib/types/planner";
 import { useTripPlanner } from "@/hooks/useTripPlanner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { MapPin, Clock, Edit3, Trash2, Check, X, GripVertical } from "lucide-react";
 
 interface TripStopCardProps {
@@ -11,6 +12,7 @@ interface TripStopCardProps {
 
 export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps) {
   const { removeStop, toggleStopVisited, updateStop, setFocusedStop } = useTripPlanner();
+  const isMobile = useIsMobile();
   const [isEditing, setIsEditing] = useState(false);
   const [memoValue, setMemoValue] = useState(stop.memo || "");
   const [editingTime, setEditingTime] = useState(false);
@@ -34,12 +36,13 @@ export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps)
     <div
       onClick={() => setFocusedStop(stop.id)}
       className={`
-        relative p-4 border rounded-2xl shadow-sm bg-card flex gap-4 group transition-all duration-300 w-full min-w-0 overflow-hidden cursor-pointer
+        relative border rounded-2xl shadow-sm bg-card flex group transition-all duration-300 w-full min-w-0 overflow-hidden cursor-pointer
+        ${isMobile ? 'p-3 gap-3' : 'p-4 gap-4'}
         ${stop.visited ? 'opacity-50 grayscale-[40%]' : 'hover:border-primary/40 hover:shadow-md'}
       `}
     >
-      {/* Drag handle icon (visible on hover) */}
-      <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition-opacity">
+      {/* Drag handle icon (visible on hover, always on mobile) */}
+      <div className={`absolute left-1 top-1/2 -translate-y-1/2 transition-opacity ${isMobile ? 'opacity-20' : 'opacity-0 group-hover:opacity-30'}`}>
         <GripVertical className="w-4 h-4" />
       </div>
 
@@ -61,7 +64,7 @@ export default function TripStopCard({ tripId, dayId, stop }: TripStopCardProps)
       <div className="flex-1 w-full min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="font-bold text-[15px] truncate">{stop.name}</div>
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className={`flex items-center gap-0.5 transition-opacity ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
             {isEditing ? (
               <>
                 <button
